@@ -1,16 +1,14 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig(options => {
+  const isDev = !!options.watch;
   return {
     entry: ['src/index.ts'],
-    format: ['esm', 'cjs'],
-    target: ['es2021', 'node16'],
-    external: [],
+    format: ['esm'],
+    target: ['es2022', 'node18'],
     shims: true,
     clean: true,
-    sourcemap: !!options.watch,
-    minifyWhitespace: !options.watch,
-    dts: true,
-    splitting: true,
+    sourcemap: isDev,
+    splitting: false,
   };
 });

@@ -1,5 +1,6 @@
 {
   "name": "@tomjs/release-cli",
+  "type": "module",
   "version": "0.0.0",
   "description": "A CLI to automatically publish npm packages.",
   "keywords": [
@@ -19,7 +20,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "publishConfig": {
     "access": "public",
@@ -38,6 +39,10 @@
     "lint:prettier": "prettier --write .",
     "prepare": "husky"
   },
+  "dependencies": {
+    "meow": "^13.2.0",
+    "semver": "^7.6.0"
+  },
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
     "@tomjs/commitlint": "^3.0.0",
@@ -45,6 +50,7 @@
     "@tomjs/prettier": "^1.3.0",
     "@tomjs/tsconfig": "^1.5.0",
     "@types/node": "^18.19.31",
+    "@types/semver": "^7.5.8",
     "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
     "husky": "^9.0.11",

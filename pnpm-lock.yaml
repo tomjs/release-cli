@@ -7,6 +7,13 @@ settings:
 importers:
 
   .:
+    dependencies:
+      meow:
+        specifier: ^13.2.0
+        version: 13.2.0
+      semver:
+        specifier: ^7.6.0
+        version: 7.6.0
     devDependencies:
       '@commitlint/cli':
         specifier: ^19.3.0
@@ -26,6 +33,9 @@ importers:
       '@types/node':
         specifier: ^18.19.31
         version: 18.19.31
+      '@types/semver':
+        specifier: ^7.5.8
+        version: 7.5.8
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
@@ -1812,6 +1822,10 @@ packages:
   meow@12.1.1:
     resolution: {integrity: sha512-BhXM0Au22RwUneMPwSCnyhTOizdWoIEPU9sp0Aqa1PnDMR5Wv2FGXYDjuzJEIX+Eo2Rb8xuYe5jrnm5QowQFkw==}
     engines: {node: '>=16.10'}
+
+  meow@13.2.0:
+    resolution: {integrity: sha512-pxQJQzB6djGPXh08dacEloMFopsOqGVRKFPYvPOt9XDZ1HasbgDZA74CJGreSU4G3Ak7EFJGoiH2auq+yXISgA==}
+    engines: {node: '>=18'}
 
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
@@ -4520,6 +4534,8 @@ snapshots:
   memorystream@0.3.1: {}
 
   meow@12.1.1: {}
+
+  meow@13.2.0: {}
 
   merge-stream@2.0.0: {}
 
