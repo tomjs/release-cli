@@ -10,5 +10,9 @@ export default defineConfig(options => {
     clean: true,
     sourcemap: isDev,
     splitting: false,
+    env: {
+      NODE_ENV: isDev ? 'development' : 'production',
+      RC_CWD: process.env.RC_CWD ?? '',
+    },
   };
 });
