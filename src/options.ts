@@ -2,13 +2,18 @@ import fs from 'node:fs';
 import { getPackages } from '@manypkg/get-packages';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
+import { publint } from 'publint';
+import { formatMessage } from 'publint/utils';
 import type { ReleaseType } from 'semver';
 import semver from 'semver';
+import type { PackageJson } from 'type-fest';
 import { ReleaseError } from './error.js';
+import { checkBranch, checkGitRepo, checkWorkStatus, getChangedPackageNames } from './git.js';
 import { logger } from './logger.js';
+import { getPackageManagerConfig } from './manager.js';
 import { getNpmTags } from './npm.js';
 import type { PackageInfo, ReleaseCLIOptions, ReleaseOptions } from './types.js';
-import { joinArray, setOptions } from './utils.js';
+import { joinArray, run, setOptions } from './utils.js';
 import {
   diffColor,
   getPreReleaseId,
@@ -20,11 +25,16 @@ import {
 export async function getOptions(options: ReleaseCLIOptions) {
   const opts = Object.assign({}, options) as ReleaseOptions;
 
+  setOptions(options);
+
   await checkCLIOptions(opts);
 
-  setOptions(opts);
-
   await findPackages(opts);
+
+  // check package
+  if (opts.strict) {
+    await checkPackageLint(opts.pkgs);
+  }
 
   await selectPackages(opts);
   await selectTypeVersion(opts);
@@ -49,13 +59,18 @@ async function checkCLIOptions(opts: ReleaseCLIOptions) {
           `[${chalk.yellow('--preid')}] Invalid pre-release identifier "${chalk.red(preid)}". Valid identifiers are: ${joinArray(PRERELEASE_VERSIONS)}.`,
         );
       }
-    } else if (type.startsWith('pre')) {
-      opts.preid = 'alpha';
     }
   }
 
   if (!fs.existsSync(cwd)) {
     throw new Error(`[${chalk.yellow('--cwd')}] Directory "${chalk.red(cwd)}" does not exist.`);
+  }
+
+  await checkGitRepo();
+  await checkWorkStatus();
+
+  if (!opts.anyBranch) {
+    opts.branch = await checkBranch(opts.branch);
   }
 }
 
@@ -72,6 +87,11 @@ async function findPackages(opts: ReleaseOptions) {
     throw new Error('Not a single package or a monorepo.');
   }
 
+  opts.isMonorepo = isMonorepo;
+
+  const pm = await getPackageManagerConfig(rootPackage.dir, rootPackage.packageJson as PackageJson);
+  opts.packageManager = pm;
+
   opts.pkgs = packages
     .filter(s => !s.packageJson.private)
     .map(s => {
@@ -83,11 +103,81 @@ async function findPackages(opts: ReleaseOptions) {
         tag: '',
       } as PackageInfo;
     });
+
+  for (const pkg of opts.pkgs) {
+    await checkPublishConfig(pkg);
+  }
+}
+
+async function checkPublishConfig(pkg: PackageInfo) {
+  const name = pkg.name;
+  const scope = name.startsWith('@') ? name.split('/')[0] : '';
+  const publicUrl = new URL('https://registry.npmjs.org').href;
+  const pc = pkg.packageJson.publishConfig || {};
+  let registry = pc.registry;
+  if (!registry) {
+    registry = await run(`npm config get ${scope ? `${scope}:registry` : 'registry'}`, {
+      cwd: pkg.dir,
+    });
+
+    if (!registry) {
+      throw new Error(
+        `Cannot find publish registry URL for ${chalk.blue(name)}.\n 1.You can set publishConfig in package.json;\n 2.execute 'npm config set registry "${publicUrl}"'.`,
+      );
+    }
+  }
+
+  registry = new URL(registry).href;
+
+  pkg.registry = registry;
+
+  if (scope) {
+    if (registry === publicUrl && pc.access !== 'public') {
+      throw new Error(
+        `${chalk.blue(name)} publish registry URL is ${chalk.red(registry)}, but access is not ${chalk.green('public')}`,
+      );
+    }
+  }
+
+  if (registry !== publicUrl && pc.access !== 'restricted') {
+    throw new Error(
+      `${chalk.blue(name)} publish registry URL is ${chalk.red(registry)}, but access is not ${chalk.green('restricted')}`,
+    );
+  }
+
+  pkg.access = registry === publicUrl ? 'public' : 'restricted';
+}
+
+async function checkPackageLint(pkgs: PackageInfo[]) {
+  let count = 0;
+  const log = (msg: string) => {
+    count++;
+    logger.error(msg);
+  };
+
+  for (const pkg of pkgs) {
+    const p = pkg.packageJson;
+    if (!p.version) {
+      log(`${chalk.yellow(pkg.name)}has no version`);
+    }
+    const { messages } = await publint({ pkgDir: pkg.dir });
+    if (messages.length) {
+      log(`${chalk.yellow(pkg.name)} has ${chalk.red(messages.length)} lint error`);
+      for (let i = 0; i < messages.length; i++) {
+        log(`  ${i + 1}.` + formatMessage(messages[i], p) || 'unknown error');
+      }
+    }
+  }
+
+  if (count > 0) {
+    ReleaseError.exit();
+  }
 }
 
 async function selectPackages(opts: ReleaseOptions) {
   let pkgs = opts.pkgs;
 
+  const changed = await getChangedPackageNames(opts);
   let selected: string[] = [];
   if (pkgs.length === 1) {
     selected = [pkgs[0].name];
@@ -100,7 +190,7 @@ async function selectPackages(opts: ReleaseOptions) {
         validate: (input: string) => input.length > 0 || 'You must choose at least one package!',
         default: [],
         choices: pkgs.map(({ name }) => ({
-          name: name,
+          name: changed.includes(name) ? chalk.yellow(name) : name,
           value: name,
         })),
       },
@@ -173,7 +263,7 @@ async function selectVersion(opts: ReleaseOptions) {
 function getVersionChoices(pkg: PackageInfo, opts: ReleaseOptions) {
   const { name, version } = pkg;
   if (!semver.valid(version)) {
-    ReleaseError.error(`${chalk.cyan(name)}'s version is invalid: ${chalk.red(version)}`);
+    throw new Error(`${chalk.blue(name)}'s version is invalid: ${chalk.red(version)}`);
   }
 
   const preId = getPreReleaseId(version);
@@ -268,7 +358,7 @@ async function selectNpmTag(pkg: PackageInfo, opts: ReleaseOptions) {
   const tagAnswers = await inquirer.prompt({
     tag: {
       type: 'list',
-      message: `${version} is a pre-release version. Select a tag for ${chalk.green(name)}`,
+      message: `${version} is a pre-release version. Select a tag for ${chalk.blue(name)}`,
       pageSize: Math.min(tagKeys.length + 2, 10),
       default: tagKeys.find(s => s === preId),
       choices() {
@@ -291,7 +381,7 @@ async function selectNpmTag(pkg: PackageInfo, opts: ReleaseOptions) {
     },
     customTag: {
       type: 'input',
-      message: `Input custom tag for ${chalk.green(name)}`,
+      message: `Input custom tag for ${chalk.blue(name)}`,
       when: answers => answers.tag === undefined,
       validate(input) {
         if (input.length === 0) {

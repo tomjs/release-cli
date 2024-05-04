@@ -9,13 +9,18 @@ export async function runRelease(options: ReleaseCLIOptions) {
     const opts = await getOptions(options);
     console.log(opts);
   } catch (e: any) {
-    if (e.code === ReleaseErrorCode.WARNING) {
-      logger.warning(e.message);
-    } else {
-      logger.error(e.message);
+    const msg = e?.message;
+    if (msg) {
+      if (e.code === ReleaseErrorCode.WARNING || e.code === ReleaseErrorCode.EXIT) {
+        logger.warning(msg);
+      } else {
+        logger.error(msg);
+      }
     }
 
     if (options.verbose) {
+      console.log();
+      console.log();
       console.log(e);
     }
   }

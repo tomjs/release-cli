@@ -1,0 +1,118 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import chalk from 'chalk';
+import semver from 'semver';
+import type { PackageJson } from 'type-fest';
+import { run } from './utils.js';
+
+export type PackageManagerCLI = 'npm' | 'pnpm' | 'yarn';
+export type PackageManagerId = PackageManagerCLI | 'yarn-berry';
+
+export interface PackageManager {
+  /**
+   * The main CLI, e.g. the `npm` in `npm install`, `npm test`, etc.
+   */
+  cli: PackageManagerCLI;
+  /**
+   * How the package manager should be referred to in user-facing messages (since there are two different configs for some, e.g. yarn and yarn-berry).
+   */
+  id: PackageManagerId;
+  /**
+   * The minimum version of the package manager required.
+   */
+  minVersion: string;
+  /**
+   * The package manager is not supported.
+   */
+  isNotSupported?: boolean;
+  /**
+   * List of lockfile names expected for this package manager, relative to CWD. e.g. `['package-lock.json', 'npm-shrinkwrap.json']`.
+   */
+  lockfiles: string[];
+}
+
+const configs: Record<PackageManagerId, PackageManager> = {
+  npm: {
+    cli: 'npm',
+    id: 'npm',
+    minVersion: '7.0.0',
+    lockfiles: ['package-lock.json', 'npm-shrinkwrap.json'],
+  },
+  pnpm: {
+    cli: 'pnpm',
+    id: 'pnpm',
+    minVersion: '8.0.0',
+    lockfiles: ['pnpm-lock.yaml'],
+  },
+  yarn: {
+    cli: 'yarn',
+    id: 'yarn',
+    minVersion: '1.0.0',
+    lockfiles: ['yarn.lock'],
+  },
+  'yarn-berry': {
+    cli: 'yarn',
+    id: 'yarn-berry',
+    minVersion: '3.1.0',
+    lockfiles: ['yarn.lock'],
+  },
+};
+
+function configFromPackageManagerField(pkg: PackageJson) {
+  if (typeof pkg.packageManager !== 'string') {
+    return undefined;
+  }
+
+  const [cli, version] = pkg.packageManager.split('@') as [PackageManagerCLI, string];
+
+  if (cli === 'yarn' && version && semver.gte(version, '2.0.0')) {
+    return configs['yarn-berry'];
+  }
+
+  const config = configs[cli];
+  if (config) {
+    if (config.isNotSupported) {
+      throw new Error(`Package manager ${chalk.green(pkg.packageManager)} is not supported`);
+    }
+    return config;
+  }
+
+  throw new Error(`Invalid package manager: ${chalk.green(pkg.packageManager)}`);
+}
+
+function findLockfile(rootDirectory: string, config: PackageManager) {
+  return config.lockfiles
+    .map(filename => path.resolve(rootDirectory || '.', filename))
+    .find(filepath => fs.existsSync(filepath));
+}
+
+function configFromLockfile(rootDirectory: string) {
+  return [configs.npm, configs.pnpm, configs.yarn].find(config =>
+    findLockfile(rootDirectory, config),
+  );
+}
+
+export async function getPackageManagerConfig(rootDirectory: string, pkg: PackageJson) {
+  const pm = configFromPackageManagerField(pkg) || configFromLockfile(rootDirectory) || configs.npm;
+  // check version
+  let version: string = '';
+
+  try {
+    version = await run([pm.cli, '--version']);
+  } catch {
+    throw new Error(`Package manager ${chalk.green(pm.id)} not installed`);
+  }
+
+  if (!version) {
+    throw new Error(
+      `Package manager ${chalk.green(pm.id)} has unknown version, please make sure ${chalk.green(pm.id)} has been installed`,
+    );
+  }
+  if (pm.minVersion && semver.lt(version, pm.minVersion)) {
+    throw new Error(
+      `Package manager ${chalk.green(pm.id)} version ${chalk.yellow(version)} is not supported, please upgrade to ${chalk.green(pm.minVersion)} or later`,
+    );
+  }
+
+  return pm;
+}

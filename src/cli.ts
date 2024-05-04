@@ -16,11 +16,14 @@ Usage
 
 Options
   --cwd <cwd>           The current working directory (default: ".")
+  --any-branch          Allow publishing from any branch (default: false)
+  --branch              Name of the release branch (default: main | master)
   --preid               Specify the pre-release identifier, allowed values are ${joinArray(PRERELEASE_VERSIONS)}.
                         If type is "prerelease", "prepatch", "preminor", "premajor",
                         the preid will be used as the pre-release identifier (default: "alpha").
                         If type is "patch", "minor", "major", the preid will be ignored.
   --tag <tag>           Publish under a given dist-tag (default: "latest")
+  --strict              Strict mode, will make some checks more strict (default: false)
   --verbose             Display verbose output
   -h, --help            Display this message
   -v, --version         Display version number
@@ -33,11 +36,22 @@ Options
         type: 'string',
         default: process.env.RC_CWD || '.',
       },
+      anyBranch: {
+        type: 'boolean',
+        default: false,
+      },
+      branch: {
+        type: 'string',
+      },
       preid: {
         type: 'string',
       },
       tag: {
         type: 'string',
+      },
+      strict: {
+        type: 'boolean',
+        default: false,
       },
       verbose: {
         type: 'boolean',

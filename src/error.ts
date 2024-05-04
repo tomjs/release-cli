@@ -1,7 +1,8 @@
 export enum ReleaseErrorCode {
-  ERROR = 0,
-  WARNING = 1,
-  ROLLBACK = 2,
+  EXIT = 0,
+  ERROR = 1,
+  WARNING = 2,
+  ROLLBACK = 3,
 }
 
 export class ReleaseError extends Error {
@@ -21,6 +22,10 @@ export class ReleaseError extends Error {
 
   static error(msg: string) {
     throw new ReleaseError(msg, ReleaseErrorCode.ERROR);
+  }
+
+  static exit(msg?: string) {
+    throw new ReleaseError(msg || '', ReleaseErrorCode.EXIT);
   }
 
   static warning(msg: string) {
