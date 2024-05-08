@@ -4,7 +4,12 @@
 
 [English](./README.md) | **中文**
 
-> 自动化发布 `npm` 包
+> 一个自动化发布 `npm` 包的 `CLI` 工具.
+
+## 注意
+
+- 本工具学习和参考了优秀的 [np](https://github.com/sindresorhus/np) 和 [changesets](https://github.com/changesets/changesets)
+- 本工具仅用于学习交流，不推荐他人重要项目使用，建议使用上述工具
 
 ## 安装
 

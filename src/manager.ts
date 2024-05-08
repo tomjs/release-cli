@@ -3,10 +3,10 @@ import path from 'node:path';
 import chalk from 'chalk';
 import semver from 'semver';
 import type { PackageJson } from 'type-fest';
-import { run } from './utils.js';
+import { joinArray, run } from './utils.js';
 
 export type PackageManagerCLI = 'npm' | 'pnpm' | 'yarn';
-export type PackageManagerId = PackageManagerCLI | 'yarn-berry';
+export type PackageManagerId = 'npm' | 'pnpm' | 'yarn' | 'yarn-berry';
 
 export interface PackageManager {
   /**
@@ -20,7 +20,7 @@ export interface PackageManager {
   /**
    * The minimum version of the package manager required.
    */
-  minVersion: string;
+  minVersion?: string;
   /**
    * The package manager is not supported.
    */
@@ -47,7 +47,6 @@ const configs: Record<PackageManagerId, PackageManager> = {
   yarn: {
     cli: 'yarn',
     id: 'yarn',
-    minVersion: '1.0.0',
     lockfiles: ['yarn.lock'],
   },
   'yarn-berry': {
@@ -71,9 +70,6 @@ function configFromPackageManagerField(pkg: PackageJson) {
 
   const config = configs[cli];
   if (config) {
-    if (config.isNotSupported) {
-      throw new Error(`Package manager ${chalk.green(pkg.packageManager)} is not supported`);
-    }
     return config;
   }
 
@@ -94,13 +90,26 @@ function configFromLockfile(rootDirectory: string) {
 
 export async function getPackageManagerConfig(rootDirectory: string, pkg: PackageJson) {
   const pm = configFromPackageManagerField(pkg) || configFromLockfile(rootDirectory) || configs.npm;
+
+  if (pm.isNotSupported) {
+    const supports = Object.keys(configs)
+      .filter(s => !configs[s].isNotSupported)
+      .map(s => {
+        const pm: PackageManager = configs[s];
+        return pm.minVersion ? `${pm.cli}>=${pm.minVersion}` : pm.cli;
+      });
+    throw new Error(
+      `Package manager ${chalk.green(pkg.packageManager)} is not supported. Please use one of the following: ${joinArray(supports)}.`,
+    );
+  }
+
   // check version
   let version: string = '';
 
   try {
     version = await run([pm.cli, '--version']);
   } catch {
-    throw new Error(`Package manager ${chalk.green(pm.id)} not installed`);
+    throw new Error(`Package manager ${chalk.green(pm.id)} is not installed`);
   }
 
   if (!version) {

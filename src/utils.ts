@@ -39,17 +39,28 @@ interface RunExecaOptions extends ExecaOptions {
    * Whether to clear the command output, replace \r and \n to ""
    * @default false
    */
-  clear?: boolean;
+  trim?: boolean;
   /**
    * spinner display content
    */
   spinner?: boolean | string;
 }
 
+/**
+ * run a command
+ * @param cmd command
+ * @param options custom and execa options
+ */
 export async function run(cmd: string, options?: RunExecaOptions): Promise<string>;
+/**
+ * run a command
+ * @param cmd a command array, will be joined by space
+ * @param options custom and execa options
+ */
 export async function run(cmd: string[], options?: RunExecaOptions): Promise<string>;
+
 export async function run(cmd: string | string[], options?: RunExecaOptions): Promise<string> {
-  const { clear, spinner, ...execOpts } = Object.assign(
+  const { trim, spinner, ...execOpts } = Object.assign(
     {
       stdio: 'pipe',
       shell: true,
@@ -57,6 +68,7 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
     } as RunExecaOptions,
     options,
   );
+  execOpts.cwd ??= _opts.cwd;
 
   if (Array.isArray(cmd)) {
     cmd = cmd.join(' ');
@@ -85,7 +97,7 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
 
     log(stdout);
 
-    if (clear) {
+    if (trim) {
       return stdout.trim().replace(/\n|\r/g, '');
     }
     return stdout.trim();
@@ -98,4 +110,25 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
 
     return Promise.reject(stderr);
   }
+}
+
+/**
+ * Whether the package name is scoped
+ * @param name package name
+ */
+export function isScopedPackage(name: string) {
+  return name.startsWith('@');
+}
+
+export function getScope(name: string) {
+  return isScopedPackage(name) ? name.split('/')[0] : '';
+}
+
+/**
+ * Remove URL trailing slashes
+ * @param url
+ * @returns
+ */
+export function removeTrailingSlashes(url: string) {
+  return url.replace(/\/+$/, '');
 }

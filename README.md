@@ -4,7 +4,12 @@
 
 **English** | [中文](./README.zh_CN.md)
 
-> A CLI to automatically publish `npm` packages.
+> A `CLI` tool to automatically publish `npm` packages.
+
+## Notice
+
+- This tool learns and refers to the excellent [np](https://github.com/sindresorhus/np) and [changesets](https://github.com/changesets/changesets)
+- This tool is only used for learning and communication. It is not recommended for others to use for important projects. It is recommended to use the above tools
 
 ## Install
 

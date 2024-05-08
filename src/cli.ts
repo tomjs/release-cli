@@ -1,8 +1,10 @@
 import meow from 'meow';
 import type { ReleaseType } from 'semver';
+import { runGenerateChangelog } from './changelog.js';
 import { isDev } from './constants.js';
+import { ReleaseErrorCode } from './error.js';
 import { logger } from './logger.js';
-import { runRelease } from './release.js';
+import { getReleaseOptions } from './options.js';
 import { joinArray } from './utils.js';
 import { PRERELEASE_VERSIONS, SEMVER_TYPES } from './version.js';
 
@@ -16,13 +18,21 @@ Usage
 
 Options
   --cwd <cwd>           The current working directory (default: ".")
-  --any-branch          Allow publishing from any branch (default: false)
-  --branch              Name of the release branch (default: main | master)
   --preid               Specify the pre-release identifier, allowed values are ${joinArray(PRERELEASE_VERSIONS)}.
                         If type is "prerelease", "prepatch", "preminor", "premajor",
                         the preid will be used as the pre-release identifier (default: "alpha").
                         If type is "patch", "minor", "major", the preid will be ignored.
+  --any-branch          Allow publishing from any branch (default: false)
+  --branch              Name of the release branch (default: main | master)
   --tag <tag>           Publish under a given dist-tag (default: "latest")
+  --no-log              Skips generating changelog
+  --log-full            Generate a full changelog and replace the existing content (default: false)
+  --no-log-commit       Don't add git commit SHA and link to the changelog
+  --no-log-compare      Don't add git compare link to the changelog
+  --git-url             Specify the git web url. If not specified, the configuration of git or package.json will be read,
+                        such as "https://github.com/tomjs/release-cli"
+  --git-commit-url      Git commit url template, default: "{url}/commit/{sha}"
+  --git-compare-url     Git compare url template, default: "{url}/compare/{diff}"
   --strict              Strict mode, will make some checks more strict (default: false)
   --verbose             Display verbose output
   -h, --help            Display this message
@@ -30,6 +40,7 @@ Options
 `,
   {
     importMeta: import.meta,
+    booleanDefault: undefined,
     helpIndent: 0,
     flags: {
       cwd: {
@@ -38,7 +49,6 @@ Options
       },
       anyBranch: {
         type: 'boolean',
-        default: false,
       },
       branch: {
         type: 'string',
@@ -47,6 +57,29 @@ Options
         type: 'string',
       },
       tag: {
+        type: 'string',
+      },
+      log: {
+        type: 'boolean',
+        default: true,
+      },
+      logFull: {
+        type: 'boolean',
+        default: false,
+      },
+      logCommit: {
+        type: 'boolean',
+      },
+      logCompare: {
+        type: 'boolean',
+      },
+      gitUrl: {
+        type: 'string',
+      },
+      gitCommitUrl: {
+        type: 'string',
+      },
+      gitCompareUrl: {
         type: 'string',
       },
       strict: {
@@ -59,9 +92,11 @@ Options
       },
       h: {
         type: 'boolean',
+        default: false,
       },
       v: {
         type: 'boolean',
+        default: false,
       },
     },
   },
@@ -76,5 +111,26 @@ if (flags.h) {
   logger.setDebug(flags.verbose);
 
   const type = input[0] as ReleaseType;
-  await runRelease(Object.assign({ type }, flags));
+  const options = Object.assign({ type }, flags);
+  logger.debug(options);
+  try {
+    const opts = await getReleaseOptions(options);
+    logger.debug(opts);
+    await runGenerateChangelog(opts);
+  } catch (e: any) {
+    const msg = e?.message;
+    if (msg) {
+      if (e.code === ReleaseErrorCode.WARNING || e.code === ReleaseErrorCode.EXIT) {
+        logger.warning(msg);
+      } else {
+        logger.error(msg);
+      }
+    }
+
+    if (options.verbose) {
+      console.log();
+      console.log();
+      console.log(e);
+    }
+  }
 }

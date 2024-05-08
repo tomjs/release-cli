@@ -1,0 +1,237 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { getPackages } from '@manypkg/get-packages';
+import chalk from 'chalk';
+import dayjs from 'dayjs';
+import { getCommitsByTags, getGitTags } from './git.js';
+import { logger } from './logger.js';
+import { getNpmRegistry, getNpmVersion, getPackageNewVersionTag } from './npm.js';
+import type { GitCommit, PackageInfo, ReleaseOptions } from './types.js';
+
+export async function runGenerateChangelog(opts: ReleaseOptions) {
+  if (!opts.log) {
+    logger.warning(`Skip generate changelog.`);
+    return opts;
+  }
+
+  const { isMonorepo, pkgs } = opts;
+  const pkgNames = pkgs.map(s => s.name);
+  const pkgTags = await getGitTags(isMonorepo ? pkgNames : []);
+
+  const depVersions = await getDependencyVersions(opts);
+
+  for (const pkgName of pkgNames) {
+    const pkg = pkgs.find(s => s.name === pkgName)!;
+
+    const name = isMonorepo ? pkgName : '_';
+    const pkgTag = pkgTags[name] || [];
+    const tags = [
+      { name: 'HEAD', version: pkg.newVersion, time: dayjs().format('YYYY-MM-DD') },
+    ].concat(pkgTag);
+
+    pkg.changelogs = [];
+
+    // check deps
+
+    for (let i = 0; i < tags.length; i++) {
+      const list = [tags[i]];
+      if (i < tags.length) {
+        list.splice(0, 0, tags[i + 1]);
+      }
+
+      logger.log(
+        `Commits of ${list
+          .filter(s => s)
+          .map(s => chalk.green(s.name))
+          .join('...')}:`,
+      );
+      console.log();
+
+      const tagNames = list.map(s => (s ? s.name : ''));
+      const logs = await getCommitsByTags(tagNames, pkg.relativeDir);
+      const commits = parseCommitLog(logs);
+
+      if (i === 0) {
+        const dep = depVersions[pkg.name];
+        if (dep) {
+          commits.push({
+            msg: `chore: update ${dep}`,
+            ids: [],
+          });
+        }
+      }
+
+      console.log(
+        commits.map(s => s.msg + (s.ids.length > 0 ? ` ${s.ids.join(' ')}` : '')).join('\n'),
+      );
+
+      pkg.changelogs.push({
+        tags: tagNames.map(name => {
+          const item = tags.find(s => s.name === name)!;
+          if (item && item.name === 'HEAD') {
+            item.name = getPackageNewVersionTag(pkg.name, item.version, isMonorepo);
+          }
+
+          return item;
+        }),
+        commits,
+      });
+
+      if (!opts.logFull) {
+        break;
+      }
+    }
+
+    pkg.changelogs.reverse();
+  }
+
+  await createChangelog(opts);
+
+  return opts;
+}
+
+function parseCommitLog(log: string) {
+  const commits: GitCommit[] = [];
+  log
+    .split('\n')
+    .filter(s => s.trim())
+    .forEach(s => {
+      const [sha, ...rest] = s.split(' ');
+      const msg = rest.join(' ');
+      // ignore merge and release commit
+      if (msg.startsWith('Merge http') || msg.startsWith('chore: release')) {
+        return;
+      }
+
+      const log = commits.find(s => s.msg === msg);
+      if (log) {
+        log.ids.push(sha);
+      } else {
+        commits.push({ msg, ids: [sha] });
+      }
+    });
+
+  return commits;
+}
+
+async function createChangelog(opts: ReleaseOptions) {
+  const { pkgs } = opts;
+  for (const pkg of pkgs) {
+    logger.info(`create changelog for ${pkg.name}`);
+
+    const logPath = path.join(pkg.dir, 'CHANGELOG.md');
+    let content = '';
+    if (opts.logFull) {
+      content = '';
+    } else if (fs.existsSync(logPath)) {
+      content = fs.readFileSync(logPath, 'utf8');
+    }
+
+    const { changelogs = [] } = pkg;
+
+    for (const changelog of changelogs) {
+      const tags = changelog.tags.filter(s => s);
+
+      let title = pkg.newVersion;
+      let msg = '';
+      if (tags.length) {
+        msg = changelog.commits
+          .map(c => {
+            let txt = `- ${c.msg}`;
+            if (opts.logCommit && opts.gitCommitUrl) {
+              txt += c.ids
+                .map(id => `  [${id}](${opts.gitCommitUrl?.replace(/{sha}/g, id)})`)
+                .join('  ');
+            }
+
+            return txt;
+          })
+          .join('\n');
+
+        const tag = tags[tags.length - 1];
+        title = tag.version;
+        if (opts.logCompare && opts.gitCompareUrl) {
+          title = `[${title}](${opts.gitCompareUrl.replace(/{diff}/g, tags.map(s => s.name).join('...'))})`;
+        }
+        title += ` (${tag.time})`;
+      }
+
+      content = `## ${title}\n\n${msg || `- No Change`}\n\n` + content;
+    }
+
+    fs.writeFileSync(logPath, content, 'utf8');
+  }
+}
+
+async function getDependencyVersions(opts: ReleaseOptions) {
+  const { pkgs, packageManager: pm } = opts;
+
+  const { packages } = await getPackages(opts.cwd);
+  const pkgNames = packages.map(pkg => pkg.packageJson.name);
+  const allVersions: Record<string, string> = {};
+  const allPackages = packages
+    .filter(s => !s.packageJson.private)
+    .map(s => {
+      return {
+        ...s,
+        name: s.packageJson.name,
+        version: s.packageJson.version,
+      } as PackageInfo;
+    });
+
+  const getPkg = async (name: string) => {
+    let pkg = pkgs.find(s => s.name === name);
+    if (!pkg) {
+      pkg = allPackages.find(s => s.name === name);
+      if (pkg) {
+        pkg.registry = await getNpmRegistry(pm, pkg);
+      }
+    }
+    return pkg!;
+  };
+
+  const getVersion = async (name: string) => {
+    const item = allVersions[name];
+    if (item !== undefined) {
+      return item;
+    }
+
+    const pkg = await getPkg(name);
+    if (pkg.newVersion) {
+      return pkg.newVersion;
+    }
+
+    const remote = await getNpmVersion(pkg);
+    let version = pkg.version;
+    if (remote && remote === remote) {
+      version = '';
+    }
+
+    allVersions[name] = version;
+    return version;
+  };
+
+  const versions: Record<string, string> = {};
+  for (const pkg of opts.pkgs) {
+    const deps = pkg.packageJson.dependencies;
+    if (!deps) {
+      continue;
+    }
+
+    const names: string[] = [];
+    for (const key of Object.keys(deps)) {
+      if (pkgNames.includes(key)) {
+        const v = await getVersion(key);
+        if (v) {
+          names.push(`${key}@${v}`);
+        }
+      }
+    }
+
+    if (names.length) {
+      versions[pkg.name] = names.join(', ');
+    }
+  }
+
+  return versions;
+}

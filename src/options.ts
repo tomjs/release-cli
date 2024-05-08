@@ -7,13 +7,21 @@ import { formatMessage } from 'publint/utils';
 import type { ReleaseType } from 'semver';
 import semver from 'semver';
 import type { PackageJson } from 'type-fest';
+import { GIT_REPO_HOSTS, NPM_REGISTRY } from './constants.js';
 import { ReleaseError } from './error.js';
-import { checkBranch, checkGitRepo, checkWorkStatus, getChangedPackageNames } from './git.js';
+import {
+  checkBranch,
+  checkGitRepo,
+  checkWorkStatus,
+  getChangedPackageNames,
+  getRepositoryUrl,
+  parseGitUrl,
+} from './git.js';
 import { logger } from './logger.js';
 import { getPackageManagerConfig } from './manager.js';
-import { getNpmTags } from './npm.js';
+import { getNpmRegistry, getNpmTags } from './npm.js';
 import type { PackageInfo, ReleaseCLIOptions, ReleaseOptions } from './types.js';
-import { joinArray, run, setOptions } from './utils.js';
+import { isScopedPackage, joinArray, setOptions } from './utils.js';
 import {
   diffColor,
   getPreReleaseId,
@@ -22,7 +30,7 @@ import {
   SEMVER_TYPES,
 } from './version.js';
 
-export async function getOptions(options: ReleaseCLIOptions) {
+export async function getReleaseOptions(options: ReleaseCLIOptions) {
   const opts = Object.assign({}, options) as ReleaseOptions;
 
   setOptions(options);
@@ -35,8 +43,11 @@ export async function getOptions(options: ReleaseCLIOptions) {
   if (opts.strict) {
     await checkPackageLint(opts.pkgs);
   }
+  await checkRepositoryUrl(opts);
 
   await selectPackages(opts);
+  await checkPackagePublishConfig(opts);
+
   await selectTypeVersion(opts);
   await selectVersion(opts);
 
@@ -92,7 +103,7 @@ async function findPackages(opts: ReleaseOptions) {
   const pm = await getPackageManagerConfig(rootPackage.dir, rootPackage.packageJson as PackageJson);
   opts.packageManager = pm;
 
-  opts.pkgs = packages
+  const pkgs = packages
     .filter(s => !s.packageJson.private)
     .map(s => {
       return {
@@ -101,51 +112,101 @@ async function findPackages(opts: ReleaseOptions) {
         version: s.packageJson.version,
         newVersion: '',
         tag: '',
+        scoped: isScopedPackage(s.packageJson.name),
       } as PackageInfo;
     });
+  opts.pkgs = pkgs;
+}
 
-  for (const pkg of opts.pkgs) {
-    await checkPublishConfig(pkg);
+async function checkPackagePublishConfig(opts: ReleaseOptions) {
+  const { pkgs, packageManager: pm } = opts;
+
+  for (const pkg of pkgs) {
+    const { name } = pkg;
+    const registry = await getNpmRegistry(pm, pkg);
+    pkg.registry = registry;
+
+    const pc = pkg.packageJson.publishConfig || {};
+    if (pkg.scoped) {
+      if (registry === NPM_REGISTRY && pc.access !== 'public') {
+        throw new Error(
+          `${chalk.blue(name)} publish registry URL is ${chalk.red(registry)}, but access is not ${chalk.green('public')}`,
+        );
+      }
+    }
+
+    if (registry !== NPM_REGISTRY && pc.access !== 'restricted') {
+      throw new Error(
+        `${chalk.blue(name)} publish registry URL is ${chalk.red(registry)}, but access is not ${chalk.green('restricted')}`,
+      );
+    }
+
+    pkg.access = registry === NPM_REGISTRY ? 'public' : 'restricted';
   }
 }
 
-async function checkPublishConfig(pkg: PackageInfo) {
-  const name = pkg.name;
-  const scope = name.startsWith('@') ? name.split('/')[0] : '';
-  const publicUrl = new URL('https://registry.npmjs.org').href;
-  const pc = pkg.packageJson.publishConfig || {};
-  let registry = pc.registry;
-  if (!registry) {
-    registry = await run(`npm config get ${scope ? `${scope}:registry` : 'registry'}`, {
-      cwd: pkg.dir,
-    });
+async function checkRepositoryUrl(opts: ReleaseOptions) {
+  if (!opts.log) {
+    return;
+  }
 
-    if (!registry) {
-      throw new Error(
-        `Cannot find publish registry URL for ${chalk.blue(name)}.\n 1.You can set publishConfig in package.json;\n 2.execute 'npm config set registry "${publicUrl}"'.`,
-      );
+  const { pkgs } = opts;
+  let repoUrl = opts.gitUrl;
+  if (!repoUrl) {
+    for (const pkg of pkgs) {
+      const repo = pkg.packageJson.repository;
+      if (repo && !repoUrl) {
+        repoUrl = typeof repo === 'object' ? repo.url : repo;
+        if (repoUrl) break;
+      }
     }
   }
 
-  registry = new URL(registry).href;
-
-  pkg.registry = registry;
-
-  if (scope) {
-    if (registry === publicUrl && pc.access !== 'public') {
-      throw new Error(
-        `${chalk.blue(name)} publish registry URL is ${chalk.red(registry)}, but access is not ${chalk.green('public')}`,
-      );
-    }
+  if (!repoUrl) {
+    repoUrl = await getRepositoryUrl();
   }
 
-  if (registry !== publicUrl && pc.access !== 'restricted') {
-    throw new Error(
-      `${chalk.blue(name)} publish registry URL is ${chalk.red(registry)}, but access is not ${chalk.green('restricted')}`,
+  function invalid(warn: string) {
+    opts.logCommit = false;
+    opts.logCompare = false;
+
+    warn && logger.warning(warn);
+  }
+
+  if (!repoUrl) {
+    return invalid(
+      pkgs.length === 1
+        ? `This package has no repository url.`
+        : `All selected packages have no repository url.`,
     );
   }
 
-  pkg.access = registry === publicUrl ? 'public' : 'restricted';
+  const gitUrl: URL = parseGitUrl(repoUrl);
+  const protocols = ['git+ssh:', 'ssh:', 'git+http:', 'http:', 'git+https:', 'https:', 'git:'];
+  if (!protocols.includes(gitUrl.protocol)) {
+    return invalid(`${chalk.red(repoUrl)} is not a valid git url.`);
+  }
+
+  const supported = GIT_REPO_HOSTS.includes(gitUrl.host);
+  opts.logCommit ??= supported;
+  opts.logCompare ??= supported;
+
+  const protocol = gitUrl.protocol.includes('http:') ? 'http:' : 'https:';
+  const webUrl =
+    protocol + '//' + gitUrl.host + gitUrl.pathname.replace(/.git$/, '').replace(/\/$/, '');
+
+  opts.gitUrl = webUrl;
+
+  logger.info(`Get git repository url: ${chalk.blue(webUrl)}`);
+
+  if (opts.logCommit) {
+    const link = opts.gitCommitUrl || '{url}/commit/{sha}';
+    opts.gitCommitUrl = link.replace(/{url}/g, webUrl);
+  }
+  if (opts.logCompare) {
+    const link = opts.gitCompareUrl || '{url}/compare/{diff}';
+    opts.gitCompareUrl = link.replace(/{url}/g, webUrl);
+  }
 }
 
 async function checkPackageLint(pkgs: PackageInfo[]) {
@@ -158,7 +219,7 @@ async function checkPackageLint(pkgs: PackageInfo[]) {
   for (const pkg of pkgs) {
     const p = pkg.packageJson;
     if (!p.version) {
-      log(`${chalk.yellow(pkg.name)}has no version`);
+      log(`${chalk.yellow(pkg.name)} has no version`);
     }
     const { messages } = await publint({ pkgDir: pkg.dir });
     if (messages.length) {
@@ -199,6 +260,7 @@ async function selectPackages(opts: ReleaseOptions) {
   }
 
   pkgs = pkgs.filter(pkg => selected.includes(pkg.name));
+
   opts.pkgs = pkgs;
 }
 
@@ -342,7 +404,7 @@ async function selectNpmTag(pkg: PackageInfo, opts: ReleaseOptions) {
     return;
   }
 
-  const tags = await getNpmTags(name);
+  const tags = await getNpmTags(pkg);
   let tagKeys = [...new Set(Object.keys(tags).concat(['alpha', 'beta', 'rc', 'next']))];
   if (preId === '') {
     const pre = ['pre', 'previous'].find(s => tagKeys.includes(s));

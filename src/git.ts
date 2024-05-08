@@ -1,9 +1,12 @@
 import path from 'node:path';
 import chalk from 'chalk';
+import dayjs from 'dayjs';
+import GitHost from 'hosted-git-info';
 import isSubdir from 'is-subdir';
+import semver from 'semver';
 import { ReleaseError } from './error.js';
 import { logger } from './logger.js';
-import type { ReleaseOptions } from './types.js';
+import type { NpmTagInfo, ReleaseOptions } from './types.js';
 import { run } from './utils.js';
 
 /**
@@ -43,7 +46,7 @@ export async function checkBranch(branch?: string) {
 }
 
 async function getRepoRoot() {
-  return await run(['git', 'rev-parse', '--show-toplevel'], { clear: true });
+  return await run(['git', 'rev-parse', '--show-toplevel'], { trim: true });
 }
 
 /**
@@ -108,4 +111,98 @@ export async function getChangedPackageNames(opts: ReleaseOptions) {
       return changedPackageFiles.length > 0;
     })
     .map(s => s.name);
+}
+
+/**
+ * Clear git tag name and return version only
+ * @param tag
+ * @returns
+ */
+export function clearTagVersion(tag: string) {
+  return tag.replace(/^v|^@.+?@/, '');
+}
+
+/**
+ * Get the latest tag of the packages.
+ * @param pkgNames only include package names
+ * @returns
+ */
+export async function getGitTags(pkgNames?: string[]) {
+  pkgNames ||= [];
+
+  const tags = await run(`git for-each-ref --format="%(refname:short) %(creatordate)" refs/tags`);
+  const map: Record<string, NpmTagInfo[]> = {};
+  const add = (name: string, tag: string) => {
+    const [version, ...times] = tag.split(' ');
+    map[name] = (map[name] || []).concat([
+      {
+        name: version,
+        version: clearTagVersion(version),
+        time: dayjs(times.join(' ')).format('YYYY-MM-DD'),
+      },
+    ]);
+  };
+
+  tags.split(/\n/).forEach(tag => {
+    if (!tag) {
+      return;
+    }
+    if (tag.startsWith('@')) {
+      const i = tag.lastIndexOf('@');
+      add(tag.substring(0, i), tag);
+    } else {
+      add('_', tag);
+    }
+  });
+
+  Object.keys(map).forEach(name => {
+    if (Array.isArray(pkgNames) && pkgNames.length && !pkgNames.includes(name)) {
+      delete map[name];
+      return;
+    }
+    map[name].sort((a, b) => {
+      return semver.gte(b.version, a.version) ? 1 : -1;
+    });
+  });
+
+  return map;
+}
+
+/**
+ * Get git tag commits
+ * @param tags
+ * @param dir
+ * @returns
+ */
+
+export async function getCommitsByTags(tags: string[], dir: string) {
+  return run(
+    `git --no-pager log ${tags.filter(s => s).join('...')} --pretty="format:%h %s" -- ${dir}`,
+  );
+}
+
+/**
+ * Get git repository hosted url
+ * @returns
+ */
+export async function getRepositoryUrl() {
+  try {
+    let url: string | undefined;
+    const res = await run(`git remote -v`);
+    const list = res
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (list.length) {
+      url = list[0].split('\t')[1].trim();
+      url = url.split(' ')[0];
+    }
+    return url;
+  } catch {}
+}
+
+export function parseGitUrl(gitUrl: string): URL {
+  // @ts-ignore
+  return GitHost.parseUrl(gitUrl);
 }

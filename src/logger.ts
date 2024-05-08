@@ -32,7 +32,7 @@ export class Logger {
 
   private _log(...args: any[]) {
     this._writeLog(...args);
-    console.log(...args);
+    console.log(args.map(s => (typeof s === 'object' ? '%o' : '%s')).join(''), ...args);
   }
 
   format(...args: any[]) {
@@ -81,6 +81,10 @@ export class Logger {
 
   warning(...args: any[]) {
     this._log(`${logSymbols.warning} `, ...args);
+  }
+
+  warn(...args: any[]) {
+    this.warning(...args);
   }
 }
 
