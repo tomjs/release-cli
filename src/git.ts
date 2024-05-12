@@ -6,8 +6,8 @@ import isSubdir from 'is-subdir';
 import semver from 'semver';
 import { ReleaseError } from './error.js';
 import { logger } from './logger.js';
-import type { NpmTagInfo, ReleaseOptions } from './types.js';
-import { run } from './utils.js';
+import type { Changelog, GitTagInfo, ReleaseOptions } from './types.js';
+import { isScopedPackage, run } from './utils.js';
 
 /**
  * Check if the current directory is a git repository.
@@ -122,6 +122,13 @@ export function clearTagVersion(tag: string) {
   return tag.replace(/^v|^@.+?@/, '');
 }
 
+export function getGitTagVersion(name: string, version: string, isMonorepo = true) {
+  if (isScopedPackage(name) || isMonorepo) {
+    return `${name}@${version}`;
+  }
+  return `v${version}`;
+}
+
 /**
  * Get the latest tag of the packages.
  * @param pkgNames only include package names
@@ -131,7 +138,7 @@ export async function getGitTags(pkgNames?: string[]) {
   pkgNames ||= [];
 
   const tags = await run(`git for-each-ref --format="%(refname:short) %(creatordate)" refs/tags`);
-  const map: Record<string, NpmTagInfo[]> = {};
+  const map: Record<string, GitTagInfo[]> = {};
   const add = (name: string, tag: string) => {
     const [version, ...times] = tag.split(' ');
     map[name] = (map[name] || []).concat([
@@ -205,4 +212,24 @@ export async function getRepositoryUrl() {
 export function parseGitUrl(gitUrl: string): URL {
   // @ts-ignore
   return GitHost.parseUrl(gitUrl);
+}
+
+export function releaseNotes(changelog: Changelog, opts: ReleaseOptions) {
+  return changelog.commits
+    .map(c => {
+      let txt = `- ${c.msg}`;
+      if (opts.logCommit && opts.gitCommitUrl) {
+        txt += c.ids.map(id => `  [${id}](${opts.gitCommitUrl?.replace(/{sha}/g, id)})`).join('  ');
+      }
+
+      return txt;
+    })
+    .join('\n');
+}
+
+export function releaseCompareUrl(changelog: Changelog, opts: ReleaseOptions) {
+  const tags = changelog.tags.filter(s => s);
+  if (opts.logCompare && opts.gitCompareUrl && tags.length) {
+    return `${opts.gitCompareUrl.replace(/{diff}/g, tags.map(s => encodeURIComponent(s.name)).join('...'))}`;
+  }
 }

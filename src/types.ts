@@ -2,7 +2,7 @@ import type { ReleaseType } from 'semver';
 import type { PackageJson } from 'type-fest';
 import type { PackageManager } from './manager.js';
 
-export interface NpmTagInfo {
+export interface GitTagInfo {
   name: string;
   version: string;
   time: string;
@@ -14,11 +14,12 @@ export interface GitCommit {
 }
 
 export interface Changelog {
-  tags: NpmTagInfo[];
+  tags: GitTagInfo[];
   commits: GitCommit[];
 }
 
 export interface NpmInfo {
+  name: string;
   version: string;
   versions: string[];
   'dist-tags': Record<string, string>;
@@ -38,7 +39,6 @@ export interface PackageInfo {
   /** git repo */
   repository?: string;
   changelogs?: Changelog[];
-
   // copy from @manypkg/get-packages
   /**
    * Absolute path to the directory containing this package.
@@ -53,6 +53,10 @@ export interface PackageInfo {
    * The pre-loaded package json structure.
    */
   packageJson: PackageJson;
+  /**
+   * The npm info from npm registry.
+   */
+  npmInfo?: NpmInfo;
 }
 
 export interface ReleaseCLIOptions {
@@ -69,6 +73,11 @@ export interface ReleaseCLIOptions {
   gitUrl?: string;
   gitCommitUrl?: string;
   gitCompareUrl?: string;
+  publish?: boolean;
+  tagOne?: boolean;
+  otp?: string;
+  releaseDraft?: boolean;
+  dryRun?: boolean;
   strict?: boolean;
   verbose?: boolean;
 }

@@ -3,10 +3,17 @@ import path from 'node:path';
 import { getPackages } from '@manypkg/get-packages';
 import chalk from 'chalk';
 import dayjs from 'dayjs';
-import { getCommitsByTags, getGitTags } from './git.js';
+import {
+  getCommitsByTags,
+  getGitTags,
+  getGitTagVersion,
+  releaseCompareUrl,
+  releaseNotes,
+} from './git.js';
 import { logger } from './logger.js';
-import { getNpmRegistry, getNpmVersion, getPackageNewVersionTag } from './npm.js';
+import { getNpmInfo, getNpmRegistry, updatePackageVersion } from './npm.js';
 import type { GitCommit, PackageInfo, ReleaseOptions } from './types.js';
+import { run } from './utils.js';
 
 export async function runGenerateChangelog(opts: ReleaseOptions) {
   if (!opts.log) {
@@ -32,7 +39,6 @@ export async function runGenerateChangelog(opts: ReleaseOptions) {
     pkg.changelogs = [];
 
     // check deps
-
     for (let i = 0; i < tags.length; i++) {
       const list = [tags[i]];
       if (i < tags.length) {
@@ -69,7 +75,7 @@ export async function runGenerateChangelog(opts: ReleaseOptions) {
         tags: tagNames.map(name => {
           const item = tags.find(s => s.name === name)!;
           if (item && item.name === 'HEAD') {
-            item.name = getPackageNewVersionTag(pkg.name, item.version, isMonorepo);
+            item.name = getGitTagVersion(pkg.name, item.version, isMonorepo);
           }
 
           return item;
@@ -115,7 +121,7 @@ function parseCommitLog(log: string) {
 }
 
 async function createChangelog(opts: ReleaseOptions) {
-  const { pkgs } = opts;
+  const { pkgs, dryRun } = opts;
   for (const pkg of pkgs) {
     logger.info(`create changelog for ${pkg.name}`);
 
@@ -135,23 +141,13 @@ async function createChangelog(opts: ReleaseOptions) {
       let title = pkg.newVersion;
       let msg = '';
       if (tags.length) {
-        msg = changelog.commits
-          .map(c => {
-            let txt = `- ${c.msg}`;
-            if (opts.logCommit && opts.gitCommitUrl) {
-              txt += c.ids
-                .map(id => `  [${id}](${opts.gitCommitUrl?.replace(/{sha}/g, id)})`)
-                .join('  ');
-            }
-
-            return txt;
-          })
-          .join('\n');
+        msg = releaseNotes(changelog, opts);
 
         const tag = tags[tags.length - 1];
         title = tag.version;
-        if (opts.logCompare && opts.gitCompareUrl) {
-          title = `[${title}](${opts.gitCompareUrl.replace(/{diff}/g, tags.map(s => s.name).join('...'))})`;
+        const url = releaseCompareUrl(changelog, opts);
+        if (url) {
+          title = `[${title}](${url})`;
         }
         title += ` (${tag.time})`;
       }
@@ -159,8 +155,30 @@ async function createChangelog(opts: ReleaseOptions) {
       content = `## ${title}\n\n${msg || `- No Change`}\n\n` + content;
     }
 
-    fs.writeFileSync(logPath, content, 'utf8');
+    if (dryRun) {
+      console.log(content);
+    } else {
+      fs.writeFileSync(logPath, content, 'utf8');
+    }
+
+    if (!opts.tagOne) {
+      await bumpVersionAndTag(pkg, opts);
+    }
   }
+}
+
+async function bumpVersionAndTag(pkg: PackageInfo, opts: ReleaseOptions) {
+  const { dryRun, isMonorepo } = opts;
+  // update version
+  !dryRun && updatePackageVersion(pkg);
+
+  await run('git add .', { cwd: pkg.dir, dryRunOption: dryRun });
+  const tag = getGitTagVersion(pkg.name, pkg.newVersion, isMonorepo);
+  await run(`git commit  -m "chore: release ${tag}"`, {
+    cwd: pkg.dir,
+    dryRunOption: dryRun,
+  });
+  await run(`git tag ${tag}`, { cwd: pkg.dir, dryRun });
 }
 
 async function getDependencyVersions(opts: ReleaseOptions) {
@@ -201,7 +219,11 @@ async function getDependencyVersions(opts: ReleaseOptions) {
       return pkg.newVersion;
     }
 
-    const remote = await getNpmVersion(pkg);
+    let npmInfo = pkg.npmInfo;
+    if (!npmInfo) {
+      npmInfo = await getNpmInfo(pkg);
+    }
+    const remote = npmInfo?.version;
     let version = pkg.version;
     if (remote && remote === remote) {
       version = '';

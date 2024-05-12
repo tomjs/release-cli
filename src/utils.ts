@@ -44,6 +44,17 @@ interface RunExecaOptions extends ExecaOptions {
    * spinner display content
    */
   spinner?: boolean | string;
+
+  /**
+   * Whether to run the command in dry run mode, will print the command without running it
+   * @default false
+   */
+  dryRun?: boolean | string;
+  /**
+   * Whether to add --dry-run option to the command, will be ignored if dryRun is true
+   * @default false
+   */
+  dryRunOption?: boolean;
 }
 
 /**
@@ -60,7 +71,7 @@ export async function run(cmd: string, options?: RunExecaOptions): Promise<strin
 export async function run(cmd: string[], options?: RunExecaOptions): Promise<string>;
 
 export async function run(cmd: string | string[], options?: RunExecaOptions): Promise<string> {
-  const { trim, spinner, ...execOpts } = Object.assign(
+  const { trim, spinner, dryRun, dryRunOption, ...execOpts } = Object.assign(
     {
       stdio: 'pipe',
       shell: true,
@@ -72,6 +83,10 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
 
   if (Array.isArray(cmd)) {
     cmd = cmd.join(' ');
+  }
+
+  if (dryRunOption) {
+    cmd += ' --dry-run';
   }
 
   const log = (str: string) => {
@@ -88,6 +103,11 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
   if (spinner) {
     const msg = typeof spinner === 'string' ? spinner : 'Running...';
     spin = ora(fixOraDisplay(msg)).start();
+  }
+
+  if (dryRun) {
+    spin && spin.stop();
+    return typeof dryRun === 'string' ? dryRun : '';
   }
 
   try {

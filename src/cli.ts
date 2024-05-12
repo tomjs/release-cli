@@ -5,6 +5,7 @@ import { isDev } from './constants.js';
 import { ReleaseErrorCode } from './error.js';
 import { logger } from './logger.js';
 import { getReleaseOptions } from './options.js';
+import { runPublish } from './publish.js';
 import { joinArray } from './utils.js';
 import { PRERELEASE_VERSIONS, SEMVER_TYPES } from './version.js';
 
@@ -34,6 +35,11 @@ Options
   --git-commit-url      Git commit url template, default: "{url}/commit/{sha}"
   --git-compare-url     Git compare url template, default: "{url}/compare/{diff}"
   --strict              Strict mode, will make some checks more strict (default: false)
+  --no-publish          Skips publishing
+  --tag-one             When publishing multiple packages, only one git tag and commit (default: false)
+  --otp                 This is a one-time password from a two-factor authenticator
+  --no-release-draft    Skips opening a GitHub release draft
+  --dry-run             Don't actually release, just simulate the process
   --verbose             Display verbose output
   -h, --help            Display this message
   -v, --version         Display version number
@@ -82,6 +88,24 @@ Options
       gitCompareUrl: {
         type: 'string',
       },
+      publish: {
+        type: 'boolean',
+        default: true,
+      },
+      tagOne: {
+        type: 'boolean',
+        default: false,
+      },
+      releaseDraft: {
+        type: 'boolean',
+      },
+      otp: {
+        type: 'string',
+      },
+      dryRun: {
+        type: 'boolean',
+        default: false,
+      },
       strict: {
         type: 'boolean',
         default: false,
@@ -113,10 +137,12 @@ if (flags.h) {
   const type = input[0] as ReleaseType;
   const options = Object.assign({ type }, flags);
   logger.debug(options);
+
   try {
     const opts = await getReleaseOptions(options);
     logger.debug(opts);
     await runGenerateChangelog(opts);
+    await runPublish(opts);
   } catch (e: any) {
     const msg = e?.message;
     if (msg) {

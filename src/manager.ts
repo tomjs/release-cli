@@ -6,7 +6,7 @@ import type { PackageJson } from 'type-fest';
 import { joinArray, run } from './utils.js';
 
 export type PackageManagerCLI = 'npm' | 'pnpm' | 'yarn';
-export type PackageManagerId = 'npm' | 'pnpm' | 'yarn' | 'yarn-berry';
+export type PackageManagerId = 'npm' | 'pnpm' | 'yarn' | 'berry';
 
 export interface PackageManager {
   /**
@@ -14,9 +14,13 @@ export interface PackageManager {
    */
   cli: PackageManagerCLI;
   /**
-   * How the package manager should be referred to in user-facing messages (since there are two different configs for some, e.g. yarn and yarn-berry).
+   * How the package manager should be referred to in user-facing messages (since there are two different configs for some, e.g. yarn and berry).
    */
   id: PackageManagerId;
+  /**
+   * The version of the package manager.
+   */
+  version?: string;
   /**
    * The minimum version of the package manager required.
    */
@@ -25,6 +29,10 @@ export interface PackageManager {
    * The package manager is not supported.
    */
   isNotSupported?: boolean;
+  /**
+   * Whether the package manager supports workspace protocol (`workspace:`).
+   */
+  workspaceProtocol?: boolean;
   /**
    * List of lockfile names expected for this package manager, relative to CWD. e.g. `['package-lock.json', 'npm-shrinkwrap.json']`.
    */
@@ -49,9 +57,9 @@ const configs: Record<PackageManagerId, PackageManager> = {
     id: 'yarn',
     lockfiles: ['yarn.lock'],
   },
-  'yarn-berry': {
+  berry: {
     cli: 'yarn',
-    id: 'yarn-berry',
+    id: 'berry',
     minVersion: '3.1.0',
     lockfiles: ['yarn.lock'],
   },
@@ -65,7 +73,7 @@ function configFromPackageManagerField(pkg: PackageJson) {
   const [cli, version] = pkg.packageManager.split('@') as [PackageManagerCLI, string];
 
   if (cli === 'yarn' && version && semver.gte(version, '2.0.0')) {
-    return configs['yarn-berry'];
+    return configs['berry'];
   }
 
   const config = configs[cli];
@@ -108,6 +116,7 @@ export async function getPackageManagerConfig(rootDirectory: string, pkg: Packag
 
   try {
     version = await run([pm.cli, '--version']);
+    pm.version = version;
   } catch {
     throw new Error(`Package manager ${chalk.green(pm.id)} is not installed`);
   }

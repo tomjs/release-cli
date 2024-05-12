@@ -19,7 +19,7 @@ import {
 } from './git.js';
 import { logger } from './logger.js';
 import { getPackageManagerConfig } from './manager.js';
-import { getNpmRegistry, getNpmTags } from './npm.js';
+import { getNpmInfo, getNpmRegistry } from './npm.js';
 import type { PackageInfo, ReleaseCLIOptions, ReleaseOptions } from './types.js';
 import { isScopedPackage, joinArray, setOptions } from './utils.js';
 import {
@@ -47,6 +47,11 @@ export async function getReleaseOptions(options: ReleaseCLIOptions) {
 
   await selectPackages(opts);
   await checkPackagePublishConfig(opts);
+
+  // npm info
+  for (const pkg of opts.pkgs) {
+    pkg.npmInfo = await getNpmInfo(pkg);
+  }
 
   await selectTypeVersion(opts);
   await selectVersion(opts);
@@ -103,7 +108,7 @@ async function findPackages(opts: ReleaseOptions) {
   const pm = await getPackageManagerConfig(rootPackage.dir, rootPackage.packageJson as PackageJson);
   opts.packageManager = pm;
 
-  const pkgs = packages
+  opts.pkgs = packages
     .filter(s => !s.packageJson.private)
     .map(s => {
       return {
@@ -115,7 +120,6 @@ async function findPackages(opts: ReleaseOptions) {
         scoped: isScopedPackage(s.packageJson.name),
       } as PackageInfo;
     });
-  opts.pkgs = pkgs;
 }
 
 async function checkPackagePublishConfig(opts: ReleaseOptions) {
@@ -190,6 +194,7 @@ async function checkRepositoryUrl(opts: ReleaseOptions) {
   const supported = GIT_REPO_HOSTS.includes(gitUrl.host);
   opts.logCommit ??= supported;
   opts.logCompare ??= supported;
+  opts.releaseDraft ??= supported;
 
   const protocol = gitUrl.protocol.includes('http:') ? 'http:' : 'https:';
   const webUrl =
@@ -404,7 +409,7 @@ async function selectNpmTag(pkg: PackageInfo, opts: ReleaseOptions) {
     return;
   }
 
-  const tags = await getNpmTags(pkg);
+  const tags = pkg.npmInfo['dist-tags'] || {};
   let tagKeys = [...new Set(Object.keys(tags).concat(['alpha', 'beta', 'rc', 'next']))];
   if (preId === '') {
     const pre = ['pre', 'previous'].find(s => tagKeys.includes(s));
