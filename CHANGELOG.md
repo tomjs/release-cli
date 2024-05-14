@@ -1,3 +1,7 @@
+## [1.0.0-beta.1](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.0...v1.0.0-beta.1) (2024-05-14)
+
+- fix: first changelog title [a36dc8c](https://github.com/tomjs/release-cli/commit/a36dc8c)
+
 ## 1.0.0-beta.0 (2024-05-14)
 
 - feat: add local and global support [414bd2f](https://github.com/tomjs/release-cli/commit/414bd2f)
