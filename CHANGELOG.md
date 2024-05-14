@@ -1,3 +1,7 @@
+## [1.0.0-beta.2](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2024-05-14)
+
+- feat: add chalk for package name [f2eba6a](https://github.com/tomjs/release-cli/commit/f2eba6a)
+
 ## [1.0.0-beta.1](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.0...v1.0.0-beta.1) (2024-05-14)
 
 - fix: first changelog title [a36dc8c](https://github.com/tomjs/release-cli/commit/a36dc8c)
