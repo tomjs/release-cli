@@ -46,7 +46,7 @@ export async function runGenerateChangelog(opts: ReleaseOptions) {
       }
 
       logger.log(
-        `Commits of ${list
+        `${chalk.green(pkg.name)} Commits of ${list
           .filter(s => s)
           .map(s => chalk.green(s.name))
           .join('...')}:`,
@@ -143,7 +143,7 @@ function parseCommitLog(log: string) {
 async function createChangelog(opts: ReleaseOptions) {
   const { pkgs, dryRun } = opts;
   for (const pkg of pkgs) {
-    logger.info(`create changelog for ${pkg.name}`);
+    logger.info(`create changelog for ${chalk.green(pkg.name)}`);
 
     const logPath = path.join(pkg.dir, 'CHANGELOG.md');
     let content = '';

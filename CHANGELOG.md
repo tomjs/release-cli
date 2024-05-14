@@ -1,4 +1,4 @@
-## [1.0.0-beta.0](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.0) (2024-05-14)
+## 1.0.0-beta.0 (2024-05-14)
 
 - feat: add local and global support [414bd2f](https://github.com/tomjs/release-cli/commit/414bd2f)
 - feat: add npm publish [d6b88ff](https://github.com/tomjs/release-cli/commit/d6b88ff)

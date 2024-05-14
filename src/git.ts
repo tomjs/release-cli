@@ -236,14 +236,14 @@ export function releaseNotes(changelog: Changelog, opts: ReleaseOptions) {
 
 export function releaseCompareUrl(changelog: Changelog, opts: ReleaseOptions) {
   const tags = changelog.tags.filter(s => s);
-  if (opts.logCompare && opts.gitCompareUrl && tags.length) {
+  if (opts.logCompare && opts.gitCompareUrl && tags.length > 1) {
     return `${opts.gitCompareUrl.replace(/{diff}/g, tags.map(s => encodeURIComponent(s.name)).join('...'))}`;
   }
 }
 
 export async function resetGitSubmit(opts: ReleaseOptions) {
   const { pkgs, gitSHA } = opts;
-  if (pkgs.length === 0 || !gitSHA) {
+  if (!pkgs || pkgs.length === 0 || !gitSHA) {
     return;
   }
 
