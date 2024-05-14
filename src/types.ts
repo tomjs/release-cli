@@ -86,4 +86,6 @@ export interface ReleaseOptions extends ReleaseCLIOptions {
   packageManager: PackageManager;
   pkgs: PackageInfo[];
   isMonorepo: boolean;
+  /** git commit SHA (before release) */
+  gitSHA?: string;
 }

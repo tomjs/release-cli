@@ -13,7 +13,7 @@ import {
 import { logger } from './logger.js';
 import { getNpmInfo, getNpmRegistry, updatePackageVersion } from './npm.js';
 import type { GitCommit, PackageInfo, ReleaseOptions } from './types.js';
-import { run } from './utils.js';
+import { askYesOrNo, cancelAndExit, run } from './utils.js';
 
 export async function runGenerateChangelog(opts: ReleaseOptions) {
   if (!opts.log) {
@@ -91,6 +91,25 @@ export async function runGenerateChangelog(opts: ReleaseOptions) {
     pkg.changelogs.reverse();
   }
 
+  // no change
+  if (!opts.logFull) {
+    const noChanges = pkgs
+      .filter(
+        pkg =>
+          !pkg.changelogs || pkg.changelogs.length === 0 || pkg.changelogs[0].commits.length === 0,
+      )
+      .map(s => s.name);
+
+    if (noChanges.length) {
+      const ask = await askYesOrNo(
+        `No changes found for ${noChanges.join(', ')}, Do you want to continue?`,
+      );
+      if (!ask) {
+        cancelAndExit();
+      }
+    }
+  }
+
   await createChangelog(opts);
 
   return opts;
@@ -100,7 +119,8 @@ function parseCommitLog(log: string) {
   const commits: GitCommit[] = [];
   log
     .split('\n')
-    .filter(s => s.trim())
+    .map(s => s.trim())
+    .filter(s => s)
     .forEach(s => {
       const [sha, ...rest] = s.split(' ');
       const msg = rest.join(' ');

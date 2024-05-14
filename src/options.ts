@@ -14,6 +14,7 @@ import {
   checkGitRepo,
   checkWorkStatus,
   getChangedPackageNames,
+  getCurrentGitSHA,
   getRepositoryUrl,
   parseGitUrl,
 } from './git.js';
@@ -36,6 +37,8 @@ export async function getReleaseOptions(options: ReleaseCLIOptions) {
   setOptions(options);
 
   await checkCLIOptions(opts);
+
+  opts.gitSHA = await getCurrentGitSHA();
 
   await findPackages(opts);
 

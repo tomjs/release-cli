@@ -3,10 +3,11 @@ import type { ReleaseType } from 'semver';
 import { runGenerateChangelog } from './changelog.js';
 import { isDev } from './constants.js';
 import { ReleaseErrorCode } from './error.js';
+import { resetGitSubmit } from './git.js';
 import { logger } from './logger.js';
 import { getReleaseOptions } from './options.js';
 import { runPublish } from './publish.js';
-import { joinArray } from './utils.js';
+import { getOptions, joinArray } from './utils.js';
 import { PRERELEASE_VERSIONS, SEMVER_TYPES } from './version.js';
 
 const cli = meow(
@@ -142,6 +143,7 @@ if (flags.h) {
     const opts = await getReleaseOptions(options);
     logger.debug(opts);
     await runGenerateChangelog(opts);
+    logger.debug(opts);
     await runPublish(opts);
   } catch (e: any) {
     const msg = e?.message;
@@ -152,6 +154,8 @@ if (flags.h) {
         logger.error(msg);
       }
     }
+
+    await resetGitSubmit(getOptions() as any);
 
     if (options.verbose) {
       console.log();

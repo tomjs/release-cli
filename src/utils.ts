@@ -1,8 +1,10 @@
 import chalk from 'chalk';
 import type { Options as ExecaOptions } from 'execa';
 import { $ } from 'execa';
+import inquirer from 'inquirer';
 import type { Ora } from 'ora';
 import ora from 'ora';
+import { ReleaseError } from './error.js';
 import { logger } from './logger.js';
 import type { ReleaseCLIOptions } from './types.js';
 
@@ -151,4 +153,25 @@ export function getScope(name: string) {
  */
 export function removeTrailingSlashes(url: string) {
   return url.replace(/\/+$/, '');
+}
+
+export function cancelAndExit(message?: string) {
+  return ReleaseError.exit(message || 'Canceled... 👋');
+}
+
+/**
+ * 是否
+ * @param message
+ */
+export async function askYesOrNo(message: string) {
+  const name = `Question-${Date.now()}`;
+  const answer = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name,
+      message,
+    },
+  ]);
+
+  return answer[name];
 }

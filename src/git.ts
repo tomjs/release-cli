@@ -7,7 +7,7 @@ import semver from 'semver';
 import { ReleaseError } from './error.js';
 import { logger } from './logger.js';
 import type { Changelog, GitTagInfo, ReleaseOptions } from './types.js';
-import { isScopedPackage, run } from './utils.js';
+import { run } from './utils.js';
 
 /**
  * Check if the current directory is a git repository.
@@ -123,7 +123,7 @@ export function clearTagVersion(tag: string) {
 }
 
 export function getGitTagVersion(name: string, version: string, isMonorepo = true) {
-  if (isScopedPackage(name) || isMonorepo) {
+  if (isMonorepo) {
     return `${name}@${version}`;
   }
   return `v${version}`;
@@ -188,6 +188,13 @@ export async function getCommitsByTags(tags: string[], dir: string) {
   );
 }
 
+export async function getCurrentGitSHA() {
+  try {
+    const sha = await run(`git rev-parse HEAD`, { trim: true });
+    return sha ? sha.substring(0, 7) : sha;
+  } catch {}
+}
+
 /**
  * Get git repository hosted url
  * @returns
@@ -231,5 +238,35 @@ export function releaseCompareUrl(changelog: Changelog, opts: ReleaseOptions) {
   const tags = changelog.tags.filter(s => s);
   if (opts.logCompare && opts.gitCompareUrl && tags.length) {
     return `${opts.gitCompareUrl.replace(/{diff}/g, tags.map(s => encodeURIComponent(s.name)).join('...'))}`;
+  }
+}
+
+export async function resetGitSubmit(opts: ReleaseOptions) {
+  const { pkgs, gitSHA } = opts;
+  if (pkgs.length === 0 || !gitSHA) {
+    return;
+  }
+
+  // remote git tag
+  for (const pkg of pkgs) {
+    const tag = getGitTagVersion(pkg.name, pkg.version, opts.isMonorepo);
+    const res = await run(`git tag -l ${tag}`);
+    if (res) {
+      await run(`git tag -d ${tag}`);
+    }
+  }
+
+  // reset git commit
+  const res = await run(`git --no-pager log -n ${pkgs.length}  --pretty="format:%h"`);
+  const shaList = res
+    .split('\n')
+    .map(s => s.trim())
+    .filter(s => s);
+
+  for (const sha of shaList) {
+    if (sha === gitSHA) {
+      return;
+    }
+    await run(`git reset --hard ${sha}`);
   }
 }

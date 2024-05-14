@@ -3,7 +3,6 @@ import path from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { NPM_REGISTRY, NPM_YARN_REGISTRY } from './constants.js';
-import { ReleaseError } from './error.js';
 import { logger } from './logger.js';
 import type { PackageManager } from './manager.js';
 import type { NpmInfo, PackageInfo, ReleaseOptions } from './types.js';
@@ -151,9 +150,6 @@ const askForOtpCode = async (twoFactorState: TwoFactorState) => {
       name: 'otp',
       message: `Enter one-time password${twoFactorState.tryAgain ? ' again' : ''}:`,
       validate: input => (input.length !== 6 ? 'Please enter a valid token' : true),
-      onCancel: () => {
-        ReleaseError.exit('Canceled... 👋');
-      },
     },
   ]);
   twoFactorState.token = otp;

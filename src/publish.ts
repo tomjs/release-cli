@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { execa } from 'execa';
 import semver from 'semver';
-import { getGitTagVersion, releaseCompareUrl, releaseNotes } from './git.js';
+import { getGitTagVersion, getRepositoryUrl, releaseCompareUrl, releaseNotes } from './git.js';
 import { logger } from './logger.js';
 import type { TwoFactorState } from './npm.js';
 import { getNpmEnv, getOtpCode, getTwoFactorState, updatePackageVersion } from './npm.js';
@@ -42,12 +42,16 @@ async function runPublishPackages(opts: ReleaseOptions) {
 
   for (const pkg of pkgs) {
     await publicOnePackage(pkg, opts, twoFactorState);
+    logger.success(`Publish ${pkg.name}@${pkg.newVersion} successfully!`);
   }
 
-  try {
-    await run(`git push --follow-tags`, { dryRunOption: opts.dryRun });
-  } catch {
-    await run(`git push --tags`, { dryRunOption: opts.dryRun });
+  const gitUrl = await getRepositoryUrl();
+  if (gitUrl) {
+    try {
+      await run(`git push --follow-tags`, { dryRunOption: opts.dryRun });
+    } catch {
+      await run(`git push --tags`, { dryRunOption: opts.dryRun });
+    }
   }
 }
 
@@ -91,7 +95,6 @@ async function publicOnePackage(
     await runNpmPublish(cli, getArgs(), pkg);
     twoFactorState.tryAgain = false;
   } catch (e: any) {
-    console.error(e);
     if (e && needOtp(e.message)) {
       if (twoFactorState.token !== null) {
         // the current otp code must be invalid since it errored

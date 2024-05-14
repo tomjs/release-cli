@@ -6,7 +6,7 @@ export default defineConfig(options => {
     entry: ['src/index.ts'],
     format: ['esm'],
     target: ['es2022', 'node18'],
-    shims: true,
+    shims: false,
     clean: true,
     sourcemap: isDev,
     splitting: false,
