@@ -133,7 +133,7 @@ if (flags.h) {
 } else if (flags.v) {
   cli.showVersion();
 } else {
-  logger.setDebug(flags.verbose);
+  logger._setDebug(flags.verbose);
 
   const type = input[0] as ReleaseType;
   const options = Object.assign({ type }, flags);

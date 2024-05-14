@@ -11,6 +11,15 @@
 - This tool learns and refers to the excellent [np](https://github.com/sindresorhus/np) and [changesets](https://github.com/changesets/changesets)
 - This tool is only used for learning and communication. It is not recommended for others to use for important projects. It is recommended to use the above tools
 
+## Prerequisite
+
+| name     | version |
+| -------- | ------- |
+| **node** | >= 18   |
+| **git**  | >= 2.11 |
+| npm      | >= 7    |
+| pnpm     | >= 8    |
+
 ## Install
 
 ```bash

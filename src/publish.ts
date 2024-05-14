@@ -42,7 +42,8 @@ async function runPublishPackages(opts: ReleaseOptions) {
 
   for (const pkg of pkgs) {
     await publicOnePackage(pkg, opts, twoFactorState);
-    logger.success(`Publish ${pkg.name}@${pkg.newVersion} successfully!`);
+    const tag = `${pkg.name}@${pkg.newVersion}`;
+    logger.success(`Publish ${chalk.green(tag)} successfully 🎉!`);
   }
 
   const gitUrl = await getRepositoryUrl();
@@ -156,6 +157,6 @@ async function runGithubRelease(opts: ReleaseOptions) {
 
     repoUrl.searchParams.set('body', msg);
 
-    logger.info(`${chalk.blue(pkg.name)} release link: ${chalk.green(repoUrl.toString())}`);
+    logger.success(`${chalk.blue(pkg.name)} github release: ${chalk.green(repoUrl.toString())}`);
   }
 }
