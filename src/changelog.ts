@@ -12,7 +12,7 @@ import {
 } from './git.js';
 import { logger } from './logger.js';
 import { getNpmInfo, getNpmRegistry, updatePackageVersion } from './npm.js';
-import type { GitCommit, PackageInfo, ReleaseOptions } from './types.js';
+import type { GitCommit, GitTagInfo, PackageInfo, ReleaseOptions } from './types.js';
 import { askYesOrNo, cancelAndExit, run } from './utils.js';
 
 export async function runGenerateChangelog(opts: ReleaseOptions) {
@@ -32,8 +32,12 @@ export async function runGenerateChangelog(opts: ReleaseOptions) {
 
     const name = isMonorepo ? pkgName : '_';
     const pkgTag = pkgTags[name] || [];
-    const tags = [
-      { name: 'HEAD', version: pkg.newVersion, time: dayjs().format('YYYY-MM-DD') },
+    const tags: GitTagInfo[] = [
+      {
+        name: 'HEAD',
+        version: pkg.newVersion,
+        time: dayjs().format('YYYY-MM-DD'),
+      },
     ].concat(pkgTag);
 
     pkg.changelogs = [];
@@ -75,7 +79,7 @@ export async function runGenerateChangelog(opts: ReleaseOptions) {
         tags: tagNames.map(name => {
           const item = tags.find(s => s.name === name)!;
           if (item && item.name === 'HEAD') {
-            item.name = getGitTagVersion(pkg.name, item.version, isMonorepo);
+            item.name = getGitTagVersion(pkg.name, item.version, opts);
           }
 
           return item;
@@ -188,12 +192,12 @@ async function createChangelog(opts: ReleaseOptions) {
 }
 
 async function bumpVersionAndTag(pkg: PackageInfo, opts: ReleaseOptions) {
-  const { dryRun, isMonorepo } = opts;
+  const { dryRun } = opts;
   // update version
   !dryRun && updatePackageVersion(pkg);
 
   await run('git add .', { cwd: pkg.dir, dryRunOption: dryRun });
-  const tag = getGitTagVersion(pkg.name, pkg.newVersion, isMonorepo);
+  const tag = getGitTagVersion(pkg.name, pkg.newVersion, opts);
   await run(`git commit  -m "chore: release ${tag}"`, {
     cwd: pkg.dir,
     dryRunOption: dryRun,

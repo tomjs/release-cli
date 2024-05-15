@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { execa } from 'execa';
+import open from 'open';
 import semver from 'semver';
 import { getGitTagVersion, getRepositoryUrl, releaseCompareUrl, releaseNotes } from './git.js';
 import { logger } from './logger.js';
@@ -28,7 +29,7 @@ async function bumpVersionAndTag(opts: ReleaseOptions) {
 
   await run('git add -A', { dryRunOption: dryRun });
 
-  const tags = pkgs.map(s => getGitTagVersion(s.name, s.version, opts.isMonorepo));
+  const tags = pkgs.map(s => getGitTagVersion(s.name, s.version, opts));
   await run(`git commit -m "chore: release ${tags.join(', ')}"`, { dryRunOption: dryRun });
 
   for (const tag of tags) {
@@ -43,7 +44,7 @@ async function runPublishPackages(opts: ReleaseOptions) {
   for (const pkg of pkgs) {
     await publicOnePackage(pkg, opts, twoFactorState);
     const tag = `${pkg.name}@${pkg.newVersion}`;
-    logger.success(`Publish ${chalk.green(tag)} successfully 🎉!`);
+    logger.success(`Publish ${chalk.green(tag)} successfully 🎉`);
   }
 
   const gitUrl = await getRepositoryUrl();
@@ -144,7 +145,7 @@ async function runGithubRelease(opts: ReleaseOptions) {
     repoUrl.pathname += '/releases/new';
 
     const { newVersion: version, changelogs } = pkg;
-    repoUrl.searchParams.set('tag', getGitTagVersion(pkg.name, version, opts.isMonorepo));
+    repoUrl.searchParams.set('tag', getGitTagVersion(pkg.name, version, opts));
     const pre = semver.parse(version)?.prerelease;
     repoUrl.searchParams.set('prerelease', pre && pre.length ? 'true' : 'false');
 
@@ -158,5 +159,7 @@ async function runGithubRelease(opts: ReleaseOptions) {
     repoUrl.searchParams.set('body', msg);
 
     logger.success(`${chalk.blue(pkg.name)} github release: ${chalk.green(repoUrl.toString())}`);
+
+    await open(repoUrl.toString());
   }
 }

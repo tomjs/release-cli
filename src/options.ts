@@ -111,7 +111,7 @@ async function findPackages(opts: ReleaseOptions) {
   const pm = await getPackageManagerConfig(rootPackage.dir, rootPackage.packageJson as PackageJson);
   opts.packageManager = pm;
 
-  opts.pkgs = packages
+  const pkgs = packages
     .filter(s => !s.packageJson.private)
     .map(s => {
       return {
@@ -123,6 +123,20 @@ async function findPackages(opts: ReleaseOptions) {
         scoped: isScopedPackage(s.packageJson.name),
       } as PackageInfo;
     });
+  opts.pkgs = pkgs;
+
+  // check package name
+  {
+    const names: Record<string, number> = {};
+    for (const pkg of pkgs) {
+      names[pkg.name] = (names[pkg.name] || 0) + 1;
+    }
+
+    const more = Object.keys(names).filter(name => names[name] > 1);
+    if (more.length) {
+      throw new Error(`Package name must be unique. ${more.join(', ')}`);
+    }
+  }
 }
 
 async function checkPackagePublishConfig(opts: ReleaseOptions) {

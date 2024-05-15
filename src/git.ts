@@ -122,9 +122,13 @@ export function clearTagVersion(tag: string) {
   return tag.replace(/^v|^@.+?@/, '');
 }
 
-export function getGitTagVersion(name: string, version: string, isMonorepo = true) {
+export function getGitTagVersion(name: string, version: string, opts: ReleaseOptions) {
+  const { isMonorepo, scopedTag } = opts;
+
   if (isMonorepo) {
-    return `${name}@${version}`;
+    const names = name.split('/');
+    const pre = scopedTag ? name : names[names.length - 1];
+    return `${pre}@${version}`;
   }
   return `v${version}`;
 }
@@ -137,28 +141,40 @@ export function getGitTagVersion(name: string, version: string, isMonorepo = tru
 export async function getGitTags(pkgNames?: string[]) {
   pkgNames ||= [];
 
-  const tags = await run(`git for-each-ref --format="%(refname:short) %(creatordate)" refs/tags`);
+  const records = await run(
+    `git for-each-ref --format="%(refname:short) %(creatordate)" refs/tags`,
+  );
   const map: Record<string, GitTagInfo[]> = {};
-  const add = (name: string, tag: string) => {
-    const [version, ...times] = tag.split(' ');
-    map[name] = (map[name] || []).concat([
+  const add = (name: string, record: string) => {
+    const [tag, ...times] = record.split(' ');
+    let pkgName = name;
+    if (name !== '_') {
+      if (!pkgNames.includes(name)) {
+        const n = pkgNames.find(s => s.endsWith(`/${name}`));
+        if (n) {
+          pkgName = n;
+        }
+      }
+    }
+
+    map[pkgName] = (map[pkgName] || []).concat([
       {
-        name: version,
-        version: clearTagVersion(version),
+        name: tag,
+        version: clearTagVersion(tag),
         time: dayjs(times.join(' ')).format('YYYY-MM-DD'),
       },
     ]);
   };
 
-  tags.split(/\n/).forEach(tag => {
-    if (!tag) {
+  records.split(/\n/).forEach(record => {
+    if (!record) {
       return;
     }
-    if (tag.startsWith('@')) {
-      const i = tag.lastIndexOf('@');
-      add(tag.substring(0, i), tag);
+    if (record.includes('@')) {
+      const i = record.lastIndexOf('@');
+      add(record.substring(0, i), record);
     } else {
-      add('_', tag);
+      add('_', record);
     }
   });
 
@@ -249,7 +265,7 @@ export async function resetGitSubmit(opts: ReleaseOptions) {
 
   // remote git tag
   for (const pkg of pkgs) {
-    const tag = getGitTagVersion(pkg.name, pkg.version, opts.isMonorepo);
+    const tag = getGitTagVersion(pkg.name, pkg.version, opts);
     const res = await run(`git tag -l ${tag}`);
     if (res) {
       await run(`git tag -d ${tag}`);

@@ -66,6 +66,7 @@ export interface ReleaseCLIOptions {
   branch?: string;
   preid?: string;
   tag?: string;
+  scopedTag?: boolean;
   log?: boolean;
   logFull?: boolean;
   logCommit?: boolean;
