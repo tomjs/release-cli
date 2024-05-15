@@ -1,3 +1,9 @@
+## [1.0.0-beta.4](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2024-05-15)
+
+- feat: add --no-build, run build script before publish [343e1f2](https://github.com/tomjs/release-cli/commit/343e1f2)
+- feat: add --no-git-check [b3800da](https://github.com/tomjs/release-cli/commit/b3800da)
+- feat: add config file and remove global/local support [caddcb1](https://github.com/tomjs/release-cli/commit/caddcb1)
+
 ## [1.0.0-beta.3](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2024-05-15)
 
 - feat: add --scoped-tag and open git release url [6a959a8](https://github.com/tomjs/release-cli/commit/6a959a8)
