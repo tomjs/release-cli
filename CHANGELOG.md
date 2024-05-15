@@ -1,3 +1,7 @@
+## [1.0.0](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.4...v1.0.0) (2024-05-15)
+
+- chore: update deps [73cf027](https://github.com/tomjs/release-cli/commit/73cf027)
+
 ## [1.0.0-beta.4](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2024-05-15)
 
 - feat: add --no-build, run build script before publish [343e1f2](https://github.com/tomjs/release-cli/commit/343e1f2)
