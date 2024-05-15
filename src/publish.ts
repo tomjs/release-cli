@@ -41,10 +41,12 @@ async function runPublishPackages(opts: ReleaseOptions) {
   const { pkgs } = opts;
   const twoFactorState = getTwoFactorState(opts);
 
-  for (const pkg of pkgs) {
-    await publicOnePackage(pkg, opts, twoFactorState);
-    const tag = `${pkg.name}@${pkg.newVersion}`;
-    logger.success(`Publish ${chalk.green(tag)} successfully 🎉`);
+  if (opts.publish) {
+    for (const pkg of pkgs) {
+      await publicOnePackage(pkg, opts, twoFactorState);
+      const tag = `${pkg.name}@${pkg.newVersion}`;
+      logger.success(`Publish ${chalk.green(tag)} successfully 🎉`);
+    }
   }
 
   const gitUrl = await getRepositoryUrl();
@@ -70,7 +72,7 @@ async function publicOnePackage(
   }
 
   if (pm.id === 'yarn') {
-    args.push('--version=', pkg.newVersion);
+    args.push(`---new-version`, pkg.newVersion);
   }
 
   if (await twoFactorState.isRequired) {
@@ -120,6 +122,7 @@ function runNpmPublish(file: string, args: string[], pkg: PackageInfo) {
   const cp = execa(file, args, { cwd: pkg.dir, env: getNpmEnv() });
 
   cp.stdout!.on('data', chunk => {
+    logger.debug(chunk.toString('utf8'));
     // https://github.com/yarnpkg/berry/blob/a3e5695186f2aec3a68810acafc6c9b1e45191da/packages/plugin-npm/sources/npmHttpUtils.ts#L541
     if (chunk.toString('utf8').includes('One-time password:')) {
       cp.kill();

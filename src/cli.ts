@@ -1,6 +1,7 @@
 import meow from 'meow';
 import type { ReleaseType } from 'semver';
 import { runGenerateChangelog } from './changelog.js';
+import { getReleaseConfig } from './config.js';
 import { isDev } from './constants.js';
 import { ReleaseErrorCode } from './error.js';
 import { resetGitSubmit } from './git.js';
@@ -53,7 +54,11 @@ Options
     flags: {
       cwd: {
         type: 'string',
-        default: process.env.RC_CWD || '.',
+        default: process.env.RC_CWD || process.cwd(),
+      },
+      gitCheck: {
+        type: 'boolean',
+        default: true,
       },
       anyBranch: {
         type: 'boolean',
@@ -142,10 +147,11 @@ if (flags.h) {
 
   const type = input[0] as ReleaseType;
   const options = Object.assign({ type }, flags);
-  logger.debug(options);
-
+  logger.debug('cli options:', options);
+  const config = await getReleaseConfig(options.cwd);
+  logger.debug('config file:', config);
   try {
-    const opts = await getReleaseOptions(options);
+    const opts = await getReleaseOptions(Object.assign({}, config, options));
     logger.debug(opts);
     await runGenerateChangelog(opts);
     logger.debug(opts);
