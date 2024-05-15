@@ -36,7 +36,7 @@ npm add @tomjs/release-cli -D
 ## Usage
 
 ```bash
-$ rc --help
+$ rc -h
 
 A CLI tool to automatically publish npm packages.
 
@@ -52,6 +52,7 @@ Options
                         If type is "prerelease", "prepatch", "preminor", "premajor",
                         the preid will be used as the pre-release identifier (default: "alpha").
                         If type is "patch", "minor", "major", the preid will be ignored.
+  --no-git-check        Skips checking git status (default: false)
   --any-branch          Allow publishing from any branch (default: false)
   --branch              Name of the release branch (default: main | master)
   --tag <tag>           Publish under a given dist-tag (default: "latest")
