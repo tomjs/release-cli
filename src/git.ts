@@ -119,7 +119,7 @@ export async function getChangedPackageNames(opts: ReleaseOptions) {
  * @returns
  */
 export function clearTagVersion(tag: string) {
-  return tag.replace(/^v|^@.+?@/, '');
+  return tag.replace(/^v|^@.+?@|\w.+?@/, '');
 }
 
 export function getGitTagVersion(name: string, version: string, opts: ReleaseOptions) {

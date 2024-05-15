@@ -43,6 +43,9 @@ async function runPublishPackages(opts: ReleaseOptions) {
 
   if (opts.publish) {
     for (const pkg of pkgs) {
+      if (opts.build && pkg.packageJson?.scripts?.build) {
+        await run('npm run build', { cwd: pkg.dir });
+      }
       await publicOnePackage(pkg, opts, twoFactorState);
       const tag = `${pkg.name}@${pkg.newVersion}`;
       logger.success(`Publish ${chalk.green(tag)} successfully 🎉`);
@@ -64,7 +67,7 @@ async function publicOnePackage(
   opts: ReleaseOptions,
   twoFactorState: TwoFactorState,
 ) {
-  const { packageManager: pm } = opts;
+  const { packageManager: pm, dryRun } = opts;
   const args: string[] = ['publish', '--access', pkg.access, '--tag', pkg.tag];
 
   if (pm.id === 'pnpm') {
@@ -77,6 +80,10 @@ async function publicOnePackage(
 
   if (await twoFactorState.isRequired) {
     await getOtpCode(twoFactorState);
+  }
+
+  if (dryRun && pm.cli !== 'yarn') {
+    args.push('--dry-run');
   }
 
   let cli: string = pm.cli;
@@ -94,6 +101,11 @@ async function publicOnePackage(
 
   const cmd = [cli].concat(getArgs()).join(' ');
   logger.debug(cmd);
+
+  if (dryRun && pm.cli === 'yarn') {
+    logger.info('Skip run npm publish command in dry-run mode.');
+    return;
+  }
 
   try {
     await runNpmPublish(cli, getArgs(), pkg);

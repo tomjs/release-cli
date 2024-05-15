@@ -40,6 +40,7 @@ Options
   --git-compare-url     Git compare url template, default: "{url}/compare/{diff}"
   --strict              Strict mode, will make some checks more strict (default: false)
   --no-publish          Skips publishing
+  --no-build            Skips run build script before publishing
   --tag-one             When publishing multiple packages, only one git tag and commit (default: false)
   --otp                 This is a one-time password from a two-factor authenticator
   --no-release-draft    Skips opening a GitHub release draft
@@ -57,7 +58,7 @@ Options
         type: 'string',
         default: process.env.RC_CWD || process.cwd(),
       },
-      gitCheck: {
+      gitChecks: {
         type: 'boolean',
         default: true,
       },
@@ -101,6 +102,10 @@ Options
         type: 'string',
       },
       publish: {
+        type: 'boolean',
+        default: true,
+      },
+      build: {
         type: 'boolean',
         default: true,
       },

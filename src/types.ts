@@ -62,7 +62,7 @@ export interface PackageInfo {
 export interface ReleaseCLIOptions {
   type?: ReleaseType;
   cwd: string;
-  gitCheck?: boolean;
+  gitChecks?: boolean;
   anyBranch?: boolean;
   branch?: string;
   preid?: string;
@@ -76,6 +76,7 @@ export interface ReleaseCLIOptions {
   gitCommitUrl?: string;
   gitCompareUrl?: string;
   publish?: boolean;
+  build?: boolean;
   tagOne?: boolean;
   otp?: string;
   releaseDraft?: boolean;

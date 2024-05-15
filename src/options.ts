@@ -85,7 +85,7 @@ async function checkCLIOptions(opts: ReleaseCLIOptions) {
     throw new Error(`[${chalk.yellow('--cwd')}] Directory "${chalk.red(cwd)}" does not exist.`);
   }
 
-  if (opts.gitCheck) {
+  if (opts.gitChecks) {
     await checkGitRepo();
     await checkWorkStatus();
 
