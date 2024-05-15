@@ -1,3 +1,7 @@
+## [1.0.0-beta.3](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2024-05-15)
+
+- feat: add --scoped-tag and open git release url [6a959a8](https://github.com/tomjs/release-cli/commit/6a959a8)
+
 ## [1.0.0-beta.2](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2024-05-14)
 
 - feat: add chalk for package name [f2eba6a](https://github.com/tomjs/release-cli/commit/f2eba6a)
