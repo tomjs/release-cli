@@ -154,7 +154,7 @@ if (flags.h) {
 
   const CWD = process.cwd();
   const type = input[0] as ReleaseType;
-  const cliOpts = Object.assign({ type, cwd: CWD }, flags);
+  const cliOpts = Object.assign({ type }, flags);
   logger.debug('cli options:', cliOpts);
 
   const config = await getReleaseConfig(cliOpts);
