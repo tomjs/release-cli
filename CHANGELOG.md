@@ -1,3 +1,11 @@
+## [2.0.0](https://github.com/tomjs/release-cli/compare/v1.0.0...v2.0.0) (2024-05-17)
+
+- feat: optimize getting npm info [e150325](https://github.com/tomjs/release-cli/commit/e150325)
+- fix: default cwd option [7c85215](https://github.com/tomjs/release-cli/commit/7c85215)
+- fix: commit message length [32e6fd5](https://github.com/tomjs/release-cli/commit/32e6fd5)
+- fix: -h option error [34799a7](https://github.com/tomjs/release-cli/commit/34799a7)
+- feat: Add --config and configuration file support [2249916](https://github.com/tomjs/release-cli/commit/2249916)
+
 ## [1.0.0](https://github.com/tomjs/release-cli/compare/v1.0.0-beta.4...v1.0.0) (2024-05-15)
 
 - chore: update deps [73cf027](https://github.com/tomjs/release-cli/commit/73cf027)
