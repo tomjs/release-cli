@@ -22,7 +22,7 @@ import { logger } from './logger.js';
 import { getPackageManagerConfig } from './manager.js';
 import { getNpmInfo, getNpmRegistry } from './npm.js';
 import type { PackageInfo, ReleaseCLIOptions, ReleaseOptions } from './types.js';
-import { isScopedPackage, joinArray, setOptions } from './utils.js';
+import { createSpin, isScopedPackage, joinArray, setOptions } from './utils.js';
 import {
   diffColor,
   getPreReleaseId,
@@ -52,8 +52,13 @@ export async function getReleaseOptions(options: ReleaseCLIOptions) {
   await checkPackagePublishConfig(opts);
 
   // npm info
-  for (const pkg of opts.pkgs) {
-    pkg.npmInfo = await getNpmInfo(pkg);
+  {
+    const spin = createSpin(`Get npm info from npm registry`);
+    const list = await Promise.all(opts.pkgs.map(pkg => getNpmInfo(pkg)));
+    spin.stop();
+    list.forEach((s, i) => {
+      opts.pkgs[i].npmInfo = s;
+    });
   }
 
   await selectTypeVersion(opts);
@@ -81,7 +86,7 @@ async function checkCLIOptions(opts: ReleaseCLIOptions) {
     }
   }
 
-  if (!fs.existsSync(cwd)) {
+  if (!fs.existsSync(cwd!)) {
     throw new Error(`[${chalk.yellow('--cwd')}] Directory "${chalk.red(cwd)}" does not exist.`);
   }
 
@@ -96,7 +101,7 @@ async function checkCLIOptions(opts: ReleaseCLIOptions) {
 }
 
 async function findPackages(opts: ReleaseOptions) {
-  const { rootPackage, packages } = await getPackages(opts.cwd);
+  const { rootPackage, packages } = await getPackages(opts.cwd!);
   if (!rootPackage || !packages || packages.length == 0) {
     throw new Error('No root package found.');
   }

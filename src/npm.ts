@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { NPM_REGISTRY, NPM_YARN_REGISTRY } from './constants.js';
 import { logger } from './logger.js';
@@ -24,8 +23,7 @@ export const getNpmInfo = async (pkg: PackageInfo) => {
   const cmd = `npm info ${pkg.name} --json --registry=${pkg.registry}`;
   let json: NpmInfo | undefined;
   try {
-    console.info(`Get ${chalk.green(pkg.name)} npm info from ${chalk.green(pkg.registry)}`);
-    const result = await run(cmd, { spinner: `Fetching ${chalk.green(pkg.name)}` });
+    const result = await run(cmd);
     json = JSON.parse(result);
   } catch {}
 

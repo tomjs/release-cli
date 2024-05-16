@@ -60,6 +60,15 @@ interface RunExecaOptions extends ExecaOptions {
 }
 
 /**
+ * create terminal spinner.
+ * @param msg display message
+ * @returns
+ */
+export function createSpin(msg: string) {
+  return ora(fixOraDisplay(msg)).start();
+}
+
+/**
  * run a command
  * @param cmd command
  * @param options custom and execa options
@@ -104,7 +113,7 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
   let spin: Ora | undefined;
   if (spinner) {
     const msg = typeof spinner === 'string' ? spinner : 'Running...';
-    spin = ora(fixOraDisplay(msg)).start();
+    spin = createSpin(msg);
   }
 
   if (dryRun) {
@@ -130,7 +139,7 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
 
     log(msg);
 
-    return Promise.reject(msg);
+    throw new ReleaseError(msg);
   }
 }
 

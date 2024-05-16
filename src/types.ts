@@ -56,7 +56,7 @@ export interface PackageInfo {
   /**
    * The npm info from npm registry.
    */
-  npmInfo?: NpmInfo;
+  npmInfo: NpmInfo;
 }
 
 export { ReleaseCLIOptions };
