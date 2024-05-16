@@ -8,6 +8,7 @@ import { resetGitSubmit } from './git.js';
 import { logger } from './logger.js';
 import { getReleaseOptions } from './options.js';
 import { runPublish } from './publish.js';
+import type { ReleaseCLIOptions } from './types.js';
 import { getOptions, joinArray } from './utils.js';
 import { PRERELEASE_VERSIONS, SEMVER_TYPES } from './version.js';
 
@@ -20,16 +21,17 @@ Usage
     ${SEMVER_TYPES.join(' | ')}
 
 Options
-  --cwd <cwd>           The current working directory (default: ".")
+  --cwd                 The current working directory (default: ".")
+  --config              Specify the config file path (eg. rc.config.json)
   --preid               Specify the pre-release identifier, allowed values are ${joinArray(PRERELEASE_VERSIONS)}.
                         If type is "prerelease", "prepatch", "preminor", "premajor",
                         the preid will be used as the pre-release identifier (default: "alpha").
                         If type is "patch", "minor", "major", the preid will be ignored.
-  --no-git-check        Skips checking git status (default: false)
+  --no-git-check        Skips checking git status
   --any-branch          Allow publishing from any branch (default: false)
   --branch              Name of the release branch (default: main | master)
   --tag <tag>           Publish under a given dist-tag (default: "latest")
-  --scoped-tag          Use scoped package name as git tag (default: false)
+  --no-scoped-tag       Don't Use scoped package name as git tag
   --no-log              Skips generating changelog
   --log-full            Generate a full changelog and replace the existing content (default: false)
   --no-log-commit       Don't add git commit SHA and link to the changelog
@@ -41,7 +43,7 @@ Options
   --strict              Strict mode, will make some checks more strict (default: false)
   --no-publish          Skips publishing
   --no-build            Skips run build script before publishing
-  --tag-one             When publishing multiple packages, only one git tag and commit (default: false)
+  --no-tag-merge        When publishing multiple packages, each package has its own independent tag and commit
   --otp                 This is a one-time password from a two-factor authenticator
   --no-release-draft    Skips opening a GitHub release draft
   --dry-run             Don't actually release, just simulate the process
@@ -56,11 +58,13 @@ Options
     flags: {
       cwd: {
         type: 'string',
-        default: process.env.RC_CWD || process.cwd(),
+      },
+      config: {
+        type: 'string',
       },
       gitChecks: {
         type: 'boolean',
-        default: true,
+        // default: true,
       },
       anyBranch: {
         type: 'boolean',
@@ -76,15 +80,14 @@ Options
       },
       scopedTag: {
         type: 'boolean',
-        default: false,
+        // default: true,
       },
       log: {
         type: 'boolean',
-        default: true,
+        // default: true,
       },
       logFull: {
         type: 'boolean',
-        default: false,
       },
       logCommit: {
         type: 'boolean',
@@ -103,15 +106,15 @@ Options
       },
       publish: {
         type: 'boolean',
-        default: true,
+        // default: true,
       },
       build: {
         type: 'boolean',
-        default: true,
+        // default: true,
       },
-      tagOne: {
+      tagMerge: {
         type: 'boolean',
-        default: false,
+        // default: true,
       },
       releaseDraft: {
         type: 'boolean',
@@ -121,15 +124,13 @@ Options
       },
       dryRun: {
         type: 'boolean',
-        default: false,
       },
       strict: {
         type: 'boolean',
-        default: false,
       },
       verbose: {
         type: 'boolean',
-        default: isDev,
+        // default: isDev,
       },
       h: {
         type: 'boolean',
@@ -151,13 +152,33 @@ if (flags.h) {
 } else {
   logger._setDebug(flags.verbose);
 
+  const CWD = process.cwd();
   const type = input[0] as ReleaseType;
-  const options = Object.assign({ type }, flags);
-  logger.debug('cli options:', options);
-  const config = await getReleaseConfig(options.cwd);
+  const cliOpts = Object.assign({ type, cwd: CWD }, flags);
+  logger.debug('cli options:', cliOpts);
+
+  const config = await getReleaseConfig(cliOpts);
   logger.debug('config file:', config);
+
+  const releaseOpts = Object.assign(
+    {
+      gitChecks: true,
+      scopedTag: true,
+      log: true,
+      publish: true,
+      build: true,
+      tagMerge: true,
+      verbose: isDev,
+    } as ReleaseCLIOptions,
+    config,
+    cliOpts,
+  ) as ReleaseCLIOptions;
+  logger.debug('merged options:', releaseOpts);
+
+  releaseOpts.cwd ||= CWD;
+
   try {
-    const opts = await getReleaseOptions(Object.assign({}, config, options));
+    const opts = await getReleaseOptions(releaseOpts);
     logger.debug(opts);
     await runGenerateChangelog(opts);
     logger.debug(opts);
@@ -174,7 +195,7 @@ if (flags.h) {
 
     await resetGitSubmit(getOptions() as any);
 
-    if (options.verbose) {
+    if (cliOpts.verbose) {
       console.log();
       console.log();
       console.log(e);

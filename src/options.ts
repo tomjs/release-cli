@@ -150,14 +150,6 @@ async function checkPackagePublishConfig(opts: ReleaseOptions) {
     pkg.registry = registry;
 
     const pc = pkg.packageJson.publishConfig || {};
-    if (pkg.scoped) {
-      if (registry === NPM_REGISTRY && pc.access !== 'public') {
-        throw new Error(
-          `${chalk.blue(name)} publish registry URL is ${chalk.red(registry)}, but access is not ${chalk.green('public')}`,
-        );
-      }
-    }
-
     if (registry !== NPM_REGISTRY && pc.access !== 'restricted') {
       throw new Error(
         `${chalk.blue(name)} publish registry URL is ${chalk.red(registry)}, but access is not ${chalk.green('restricted')}`,

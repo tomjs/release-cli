@@ -1,5 +1,5 @@
-import type { ReleaseType } from 'semver';
 import type { PackageJson } from 'type-fest';
+import { ReleaseCLIOptions } from '../index.js';
 import type { PackageManager } from './manager.js';
 
 export interface GitTagInfo {
@@ -59,31 +59,7 @@ export interface PackageInfo {
   npmInfo?: NpmInfo;
 }
 
-export interface ReleaseCLIOptions {
-  type?: ReleaseType;
-  cwd: string;
-  gitChecks?: boolean;
-  anyBranch?: boolean;
-  branch?: string;
-  preid?: string;
-  tag?: string;
-  scopedTag?: boolean;
-  log?: boolean;
-  logFull?: boolean;
-  logCommit?: boolean;
-  logCompare?: boolean;
-  gitUrl?: string;
-  gitCommitUrl?: string;
-  gitCompareUrl?: string;
-  publish?: boolean;
-  build?: boolean;
-  tagOne?: boolean;
-  otp?: string;
-  releaseDraft?: boolean;
-  dryRun?: boolean;
-  strict?: boolean;
-  verbose?: boolean;
-}
+export { ReleaseCLIOptions };
 
 export interface ReleaseOptions extends ReleaseCLIOptions {
   packageManager: PackageManager;

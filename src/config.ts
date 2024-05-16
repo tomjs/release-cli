@@ -1,11 +1,28 @@
+import fs from 'node:fs';
 import { cosmiconfig } from 'cosmiconfig';
+import type { ReleaseCLIOptions } from './types.js';
 
-export async function getReleaseConfig(cwd: string) {
+export async function getReleaseConfig(opts: ReleaseCLIOptions) {
   const explorer = cosmiconfig('rc', {
-    stopDir: cwd,
+    stopDir: opts.cwd,
+    searchPlaces: [
+      'package.json',
+      'rc.config.json',
+      'rc.config.js',
+      'rc.config.mjs',
+      'rc.config.cjs',
+    ],
   });
 
-  const { config } = (await explorer.search(cwd)) ?? {};
+  if (opts.config) {
+    if (!fs.existsSync(opts.config)) {
+      return {};
+    }
 
-  return config || {};
+    const result = await explorer.load(opts.config);
+    return result?.config || {};
+  }
+
+  const result = await explorer.search();
+  return result?.config || {};
 }

@@ -126,11 +126,11 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
   } catch (e: any) {
     spin && spin.stop();
 
-    const { stderr } = e;
+    const msg = e.stderr || e.message;
 
-    log(stderr);
+    log(msg);
 
-    return Promise.reject(stderr);
+    return Promise.reject(msg);
   }
 }
 

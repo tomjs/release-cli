@@ -185,7 +185,7 @@ async function createChangelog(opts: ReleaseOptions) {
       fs.writeFileSync(logPath, content, 'utf8');
     }
 
-    if (!opts.tagOne) {
+    if (!opts.tagMerge) {
       await bumpVersionAndTag(pkg, opts);
     }
   }
@@ -196,11 +196,11 @@ async function bumpVersionAndTag(pkg: PackageInfo, opts: ReleaseOptions) {
   // update version
   !dryRun && updatePackageVersion(pkg);
 
-  await run('git add .', { cwd: pkg.dir, dryRunOption: dryRun });
+  await run('git add .', { cwd: pkg.dir, dryRun });
   const tag = getGitTagVersion(pkg.name, pkg.newVersion, opts);
   await run(`git commit  -m "chore: release ${tag}"`, {
     cwd: pkg.dir,
-    dryRunOption: dryRun,
+    dryRun,
   });
   await run(`git tag ${tag}`, { cwd: pkg.dir, dryRun });
 }
@@ -208,7 +208,7 @@ async function bumpVersionAndTag(pkg: PackageInfo, opts: ReleaseOptions) {
 async function getDependencyVersions(opts: ReleaseOptions) {
   const { pkgs, packageManager: pm } = opts;
 
-  const { packages } = await getPackages(opts.cwd);
+  const { packages } = await getPackages(opts.cwd!);
   const pkgNames = packages.map(pkg => pkg.packageJson.name);
   const allVersions: Record<string, string> = {};
   const allPackages = packages

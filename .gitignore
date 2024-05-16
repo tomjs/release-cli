@@ -32,7 +32,7 @@ web_modules
 tsconfig.tsbuildinfo
 
 # environment
-*.local
+.env.local
 
 # macOS
 .DS_Store
@@ -58,3 +58,4 @@ tsconfig.tsbuildinfo
 build
 dist
 release
+rc.config.local.*

@@ -26,8 +26,8 @@ if (!fs.existsSync(logFile)) {
 export class Logger {
   private _debug = false;
 
-  _setDebug(debug: boolean) {
-    this._debug = debug;
+  _setDebug(debug?: boolean) {
+    this._debug = !!debug;
   }
 
   private _log(...args: any[]) {

@@ -16,21 +16,23 @@ export async function runPublish(opts: ReleaseOptions) {
 }
 
 async function bumpVersionAndTag(opts: ReleaseOptions) {
-  if (!opts.tagOne) {
+  if (!opts.tagMerge) {
     return;
   }
 
   logger.info(chalk.green('Bump version and tag'));
 
   const { pkgs: pkgs, dryRun } = opts;
-  for (const pkg of pkgs) {
-    updatePackageVersion(pkg);
+  if (!dryRun) {
+    for (const pkg of pkgs) {
+      updatePackageVersion(pkg);
+    }
   }
 
-  await run('git add -A', { dryRunOption: dryRun });
+  await run('git add -A', { dryRun });
 
   const tags = pkgs.map(s => getGitTagVersion(s.name, s.version, opts));
-  await run(`git commit -m "chore: release ${tags.join(', ')}"`, { dryRunOption: dryRun });
+  await run(`git commit -m "chore: release ${tags.join(', ')}"`, { dryRun });
 
   for (const tag of tags) {
     await run(`git tag ${tag}`, { dryRun });
@@ -38,15 +40,15 @@ async function bumpVersionAndTag(opts: ReleaseOptions) {
 }
 
 async function runPublishPackages(opts: ReleaseOptions) {
-  const { pkgs } = opts;
+  const { pkgs, dryRun } = opts;
   const twoFactorState = getTwoFactorState(opts);
 
   if (opts.publish) {
     for (const pkg of pkgs) {
-      if (opts.build && pkg.packageJson?.scripts?.build) {
+      if (!dryRun && opts.build && pkg.packageJson?.scripts?.build) {
         await run('npm run build', { cwd: pkg.dir });
       }
-      await publicOnePackage(pkg, opts, twoFactorState);
+      await publishOnePackage(pkg, opts, twoFactorState);
       const tag = `${pkg.name}@${pkg.newVersion}`;
       logger.success(`Publish ${chalk.green(tag)} successfully 🎉`);
     }
@@ -55,14 +57,15 @@ async function runPublishPackages(opts: ReleaseOptions) {
   const gitUrl = await getRepositoryUrl();
   if (gitUrl) {
     try {
-      await run(`git push --follow-tags`, { dryRunOption: opts.dryRun });
+      await run(`git push --follow-tags`, { dryRun });
     } catch {
-      await run(`git push --tags`, { dryRunOption: opts.dryRun });
+      await run(`git push`, { dryRun });
+      await run(`git push --tags`, { dryRun });
     }
   }
 }
 
-async function publicOnePackage(
+async function publishOnePackage(
   pkg: PackageInfo,
   opts: ReleaseOptions,
   twoFactorState: TwoFactorState,
@@ -117,7 +120,7 @@ async function publicOnePackage(
         twoFactorState.token = null;
       }
       twoFactorState.tryAgain = true;
-      await publicOnePackage(pkg, opts, twoFactorState);
+      await publishOnePackage(pkg, opts, twoFactorState);
     } else {
       throw e;
     }
@@ -168,13 +171,20 @@ async function runGithubRelease(opts: ReleaseOptions) {
     if (changelogs && changelogs.length) {
       const changelog = changelogs[0];
       msg = releaseNotes(changelog, opts) || `- No Change`;
-      msg += `\n\n${releaseCompareUrl(changelog, opts)}`;
+      const url = releaseCompareUrl(changelog, opts);
+      if (url) {
+        msg += `\n\n${url}`;
+      }
     }
+
+    logger.debug('release log:\n', msg);
 
     repoUrl.searchParams.set('body', msg);
 
     logger.success(`${chalk.blue(pkg.name)} github release: ${chalk.green(repoUrl.toString())}`);
 
-    await open(repoUrl.toString());
+    if (!opts.dryRun) {
+      await open(repoUrl.toString());
+    }
   }
 }

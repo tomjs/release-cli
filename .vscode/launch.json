@@ -11,9 +11,13 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}\\dist\\index.js",
-      "console": "integratedTerminal",
-      "preLaunchTask": "${defaultBuildTask}",
+      "runtimeExecutable": "tsx",
+      "program": "${workspaceFolder}\\src\\index.ts",
+      "args": [
+        "--config",
+        "${workspaceFolder}\\rc.config.local.cjs"
+      ],
+      "console": "integratedTerminal"
     }
   ]
 }
