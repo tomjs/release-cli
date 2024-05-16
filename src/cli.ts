@@ -146,7 +146,7 @@ Options
 
 const { input, flags } = cli;
 if (flags.h) {
-  cli.showHelp();
+  cli.showHelp(0);
 } else if (flags.v) {
   cli.showVersion();
 } else {
