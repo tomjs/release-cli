@@ -1,3 +1,7 @@
+## [2.0.2](https://github.com/tomjs/release-cli/compare/v2.0.1...v2.0.2) (2024-05-17)
+
+- feat: github release add title param [e02bd51](https://github.com/tomjs/release-cli/commit/e02bd51)
+
 ## [2.0.1](https://github.com/tomjs/release-cli/compare/v2.0.0...v2.0.1) (2024-05-17)
 
 - chore: remove dts gen [0c635d7](https://github.com/tomjs/release-cli/commit/0c635d7)
