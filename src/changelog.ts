@@ -91,8 +91,6 @@ export async function runGenerateChangelog(opts: ReleaseOptions) {
         break;
       }
     }
-
-    pkg.changelogs.reverse();
   }
 
   // no change
@@ -159,6 +157,8 @@ async function createChangelog(opts: ReleaseOptions) {
 
     const { changelogs = [] } = pkg;
 
+    pkg.changelogs?.reverse();
+
     for (const changelog of changelogs) {
       const tags = changelog.tags.filter(s => s);
 
@@ -178,6 +178,8 @@ async function createChangelog(opts: ReleaseOptions) {
 
       content = `## ${title}\n\n${msg || `- No Change`}\n\n` + content;
     }
+
+    pkg.changelogs?.reverse();
 
     if (dryRun) {
       console.log(content);
