@@ -11,7 +11,6 @@ export default defineConfig(options => {
     clean: true,
     sourcemap: isDev,
     splitting: false,
-    dts: !isDev,
     env: {
       NODE_ENV: isDev ? 'development' : 'production',
     },
