@@ -1,3 +1,8 @@
+## [2.0.1](https://github.com/tomjs/release-cli/compare/v2.0.0...v2.0.1) (2024-05-17)
+
+- chore: remove dts gen [0c635d7](https://github.com/tomjs/release-cli/commit/0c635d7)
+- fix: github release link changelog error [13261d0](https://github.com/tomjs/release-cli/commit/13261d0)
+
 ## [2.0.0](https://github.com/tomjs/release-cli/compare/v1.0.0...v2.0.0) (2024-05-17)
 
 - feat: optimize getting npm info [e150325](https://github.com/tomjs/release-cli/commit/e150325)
