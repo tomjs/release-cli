@@ -178,7 +178,9 @@ async function runGithubRelease(opts: ReleaseOptions) {
     repoUrl.pathname += '/releases/new';
 
     const { newVersion: version, changelogs } = pkg;
-    repoUrl.searchParams.set('tag', getGitTagVersion(pkg.name, version, opts));
+    const tag = getGitTagVersion(pkg.name, version, opts);
+    repoUrl.searchParams.set('tag', tag);
+    repoUrl.searchParams.set('title', tag);
     const pre = semver.parse(version)?.prerelease;
     repoUrl.searchParams.set('prerelease', pre && pre.length ? 'true' : 'false');
 
