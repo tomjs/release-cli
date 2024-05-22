@@ -150,7 +150,7 @@ if (flags.h) {
 } else if (flags.v) {
   cli.showVersion();
 } else {
-  logger._setDebug(flags.verbose);
+  logger.enableDebug(!!flags.verbose);
 
   const CWD = process.cwd();
   const type = input[0] as ReleaseType;
