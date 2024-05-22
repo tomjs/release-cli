@@ -1,3 +1,7 @@
+## [2.0.3](https://github.com/tomjs/release-cli/compare/v2.0.2...v2.0.3) (2024-05-22)
+
+- feat: use @tomjs/logger [8e33dfb](https://github.com/tomjs/release-cli/commit/8e33dfb)
+
 ## [2.0.2](https://github.com/tomjs/release-cli/compare/v2.0.1...v2.0.2) (2024-05-17)
 
 - feat: github release add title param [e02bd51](https://github.com/tomjs/release-cli/commit/e02bd51)
