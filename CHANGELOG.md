@@ -1,3 +1,7 @@
+## [2.2.1](https://github.com/tomjs/release-cli/compare/v2.2.0...v2.2.1) (2024-05-27)
+
+- docs: update readme [bb19ff0](https://github.com/tomjs/release-cli/commit/bb19ff0)
+
 ## [2.2.0](https://github.com/tomjs/release-cli/compare/v2.1.0...v2.2.0) (2024-05-27)
 
 - feat: clear git log scope [8f20a95](https://github.com/tomjs/release-cli/commit/8f20a95)
