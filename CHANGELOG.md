@@ -1,3 +1,7 @@
+## [2.0.4](https://github.com/tomjs/release-cli/compare/v2.0.3...v2.0.4) (2024-05-27)
+
+- fix: logger dir [04a1b41](https://github.com/tomjs/release-cli/commit/04a1b41)
+
 ## [2.0.3](https://github.com/tomjs/release-cli/compare/v2.0.2...v2.0.3) (2024-05-22)
 
 - feat: use @tomjs/logger [8e33dfb](https://github.com/tomjs/release-cli/commit/8e33dfb)
