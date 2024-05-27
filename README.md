@@ -45,6 +45,7 @@ npm add @tomjs/release-cli -D
 ```bash
 $ rc -h
 
+
 A CLI tool to automatically publish npm packages.
 
 Usage
@@ -64,7 +65,7 @@ Options
   --any-branch          Allow publishing from any branch (default: false)
   --branch              Name of the release branch (default: main | master)
   --tag <tag>           Publish under a given dist-tag (default: "latest")
-  --no-scoped-tag       Don't Use scoped package name as git tag
+  --scoped-tag          Use scoped package name as git tag
   --no-log              Skips generating changelog
   --log-full            Generate a full changelog and replace the existing content (default: false)
   --no-log-commit       Don't add git commit SHA and link to the changelog
