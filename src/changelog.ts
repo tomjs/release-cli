@@ -125,11 +125,13 @@ function parseCommitLog(log: string) {
     .filter(s => s)
     .forEach(s => {
       const [sha, ...rest] = s.split(' ');
-      const msg = rest.join(' ');
+      let msg = rest.join(' ');
       // ignore merge and release commit
       if (msg.startsWith('Merge http') || msg.startsWith('chore: release')) {
         return;
       }
+
+      msg = msg.replace(/\(.*?\):/, ':');
 
       const log = commits.find(s => s.msg === msg);
       if (log) {
