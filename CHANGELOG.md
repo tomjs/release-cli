@@ -1,3 +1,7 @@
+## [2.1.0](https://github.com/tomjs/release-cli/compare/v2.0.4...v2.1.0) (2024-05-27)
+
+- chore: scopedTag default to false [eb337ad](https://github.com/tomjs/release-cli/commit/eb337ad)
+
 ## [2.0.4](https://github.com/tomjs/release-cli/compare/v2.0.3...v2.0.4) (2024-05-27)
 
 - fix: logger dir [04a1b41](https://github.com/tomjs/release-cli/commit/04a1b41)
