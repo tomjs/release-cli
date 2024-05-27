@@ -1,3 +1,7 @@
+## [2.2.0](https://github.com/tomjs/release-cli/compare/v2.1.0...v2.2.0) (2024-05-27)
+
+- feat: clear git log scope [8f20a95](https://github.com/tomjs/release-cli/commit/8f20a95)
+
 ## [2.1.0](https://github.com/tomjs/release-cli/compare/v2.0.4...v2.1.0) (2024-05-27)
 
 - chore: scopedTag default to false [eb337ad](https://github.com/tomjs/release-cli/commit/eb337ad)
