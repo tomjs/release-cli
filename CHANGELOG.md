@@ -1,3 +1,7 @@
+## [3.0.0](https://github.com/tomjs/release-cli/compare/v2.2.1...v3.0.0) (2024-05-29)
+
+- feat: modify the git tag naming rules of the scope package [f7fc585](https://github.com/tomjs/release-cli/commit/f7fc585)
+
 ## [2.2.1](https://github.com/tomjs/release-cli/compare/v2.2.0...v2.2.1) (2024-05-27)
 
 - docs: update readme [bb19ff0](https://github.com/tomjs/release-cli/commit/bb19ff0)
