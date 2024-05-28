@@ -119,18 +119,31 @@ export async function getChangedPackageNames(opts: ReleaseOptions) {
  * @returns
  */
 export function clearTagVersion(tag: string) {
-  return tag.replace(/^v|^@.+?@|\w.+?@/, '');
+  return tag.replace(/(.+(_|-|@))/, '').replace('v', '');
 }
 
-export function getGitTagVersion(name: string, version: string, opts: ReleaseOptions) {
+function getGitTagPrefixLegacy(name: string, opts: ReleaseOptions) {
   const { isMonorepo, scopedTag } = opts;
-
   if (isMonorepo) {
     const names = name.split('/');
     const pre = scopedTag ? name : names[names.length - 1];
-    return `${pre}@${version}`;
+    return `${pre}@`;
   }
-  return `v${version}`;
+  return 'v';
+}
+
+export function getGitTagPrefix(name: string, opts: ReleaseOptions) {
+  const { isMonorepo, scopedTag } = opts;
+  if (isMonorepo) {
+    const names = name.split('/');
+    const pre = scopedTag ? name.replace('@', '').replace('/', '-') : names[names.length - 1];
+    return `${pre}-v`;
+  }
+  return 'v';
+}
+
+export function getGitTagVersion(name: string, version: string, opts: ReleaseOptions) {
+  return getGitTagPrefix(name, opts) + version;
 }
 
 /**
@@ -138,29 +151,51 @@ export function getGitTagVersion(name: string, version: string, opts: ReleaseOpt
  * @param pkgNames only include package names
  * @returns
  */
-export async function getGitTags(pkgNames?: string[]) {
-  pkgNames ||= [];
+export async function getGitTags(opts: ReleaseOptions) {
+  const { isMonorepo, pkgs } = opts;
+  const pkgNames = isMonorepo ? pkgs.map(s => s.name) : [];
+
+  // compatible with old version
+  const prefixMap: Record<string, string> = {};
+  if (isMonorepo) {
+    pkgNames.forEach(name => {
+      prefixMap[getGitTagPrefixLegacy(name, { isMonorepo, scopedTag: true } as ReleaseOptions)] =
+        name;
+      prefixMap[getGitTagPrefixLegacy(name, { isMonorepo, scopedTag: false } as ReleaseOptions)] =
+        name;
+      prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: true } as ReleaseOptions)] = name;
+      prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: false } as ReleaseOptions)] = name;
+    });
+  }
+  const prefixKeys = Object.keys(prefixMap);
 
   const records = await run(
     `git for-each-ref --format="%(refname:short) %(creatordate)" refs/tags`,
   );
   const map: Record<string, GitTagInfo[]> = {};
-  const add = (name: string, record: string) => {
+  const add = (record: string) => {
     const [tag, ...times] = record.split(' ');
-    let pkgName = name;
-    if (name !== '_') {
-      if (!pkgNames.includes(name)) {
-        const n = pkgNames.find(s => s.endsWith(`/${name}`));
-        if (n) {
-          pkgName = n;
-        }
+    const version = clearTagVersion(tag);
+
+    let pkgName = '';
+
+    // single package
+    if (tag === `v${version}` || tag === version) {
+      pkgName = '_';
+    } else {
+      const prefix = prefixKeys.find(pre => tag === `${pre}${version}`);
+      if (prefix) {
+        pkgName = prefixMap[prefix];
       }
+    }
+    if (!pkgName) {
+      return;
     }
 
     map[pkgName] = (map[pkgName] || []).concat([
       {
         name: tag,
-        version: clearTagVersion(tag),
+        version,
         time: dayjs(times.join(' ')).format('YYYY-MM-DD'),
       },
     ]);
@@ -170,12 +205,7 @@ export async function getGitTags(pkgNames?: string[]) {
     if (!record) {
       return;
     }
-    if (record.includes('@')) {
-      const i = record.lastIndexOf('@');
-      add(record.substring(0, i), record);
-    } else {
-      add('_', record);
-    }
+    add(record);
   });
 
   Object.keys(map).forEach(name => {

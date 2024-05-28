@@ -23,7 +23,7 @@ export async function runGenerateChangelog(opts: ReleaseOptions) {
 
   const { isMonorepo, pkgs } = opts;
   const pkgNames = pkgs.map(s => s.name);
-  const pkgTags = await getGitTags(isMonorepo ? pkgNames : []);
+  const pkgTags = await getGitTags(opts);
 
   const depVersions = await getDependencyVersions(opts);
 
