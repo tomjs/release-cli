@@ -1,3 +1,8 @@
+## [3.1.0](https://github.com/tomjs/release-cli/compare/v3.0.0...v3.1.0) (2024-05-30)
+
+- feat: optimize git commit [38da010](https://github.com/tomjs/release-cli/commit/38da010)
+- chore: update deps [9422b9b](https://github.com/tomjs/release-cli/commit/9422b9b)
+
 ## [3.0.0](https://github.com/tomjs/release-cli/compare/v2.2.1...v3.0.0) (2024-05-29)
 
 - feat: modify the git tag naming rules of the scope package [f7fc585](https://github.com/tomjs/release-cli/commit/f7fc585)
