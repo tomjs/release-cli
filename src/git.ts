@@ -122,7 +122,7 @@ export function clearTagVersion(tag: string) {
   return tag.replace(/(.+(_|-|@))/, '').replace('v', '');
 }
 
-function getGitTagPrefixLegacy(name: string, opts: ReleaseOptions) {
+export function getGitTagPrefixLegacy(name: string, opts: ReleaseOptions) {
   const { isMonorepo, scopedTag } = opts;
   if (isMonorepo) {
     const names = name.split('/');
@@ -140,6 +140,10 @@ export function getGitTagPrefix(name: string, opts: ReleaseOptions) {
     return `${pre}-v`;
   }
   return 'v';
+}
+
+export function getGitTagVersionLegacy(name: string, version: string, opts: ReleaseOptions) {
+  return getGitTagPrefixLegacy(name, opts) + version;
 }
 
 export function getGitTagVersion(name: string, version: string, opts: ReleaseOptions) {

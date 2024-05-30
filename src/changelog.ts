@@ -202,7 +202,7 @@ async function bumpVersionAndTag(pkg: PackageInfo, opts: ReleaseOptions) {
 
   await run('git add .', { cwd: pkg.dir, dryRun });
   const tag = getGitTagVersion(pkg.name, pkg.newVersion, opts);
-  await run(`git commit  -m "chore: release ${tag}"`, {
+  await run(`git commit -m "chore: release ${tag}"`, {
     cwd: pkg.dir,
     dryRun,
   });

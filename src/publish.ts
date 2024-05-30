@@ -1,11 +1,14 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import chalk from 'chalk';
 import { execa } from 'execa';
 import open from 'open';
 import semver from 'semver';
-import { getGitTagVersion, getRepositoryUrl, releaseCompareUrl, releaseNotes } from './git.js';
+import {
+  getGitTagVersion,
+  getGitTagVersionLegacy,
+  getRepositoryUrl,
+  releaseCompareUrl,
+  releaseNotes,
+} from './git.js';
 import { logger } from './logger.js';
 import type { TwoFactorState } from './npm.js';
 import { getNpmEnv, getOtpCode, getTwoFactorState, updatePackageVersion } from './npm.js';
@@ -35,20 +38,12 @@ async function bumpVersionAndTag(opts: ReleaseOptions) {
   await run('git add -A', { dryRun });
 
   // git commit message
+  const msgTags = pkgs.map(s => getGitTagVersionLegacy(s.name, s.newVersion, opts));
+  await run(`git commit -m "chore: release ${msgTags.join(', ')}"`, {
+    dryRun,
+  });
+
   const tags = pkgs.map(s => getGitTagVersion(s.name, s.newVersion, opts));
-  let msg = `chore: release ${tags.length > 1 ? `${tags.length} packages` : `${tags[0]}`}`;
-  if (pkgs.length > 1) {
-    msg += `\n\n`;
-    msg += pkgs.map(s => `${s.name}: ${s.version} => ${s.newVersion}`).join('\n');
-  }
-
-  const msgFile = path.join(os.tmpdir(), `tomjs-release-${Date.now()}.txt`);
-  fs.writeFileSync(msgFile, msg);
-
-  await run([`git commit --file "${msgFile}"`], { dryRun });
-
-  fs.rmSync(msgFile);
-
   for (const tag of tags) {
     await run(`git tag ${tag}`, { dryRun });
   }
