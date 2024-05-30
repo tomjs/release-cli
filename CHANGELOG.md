@@ -1,3 +1,7 @@
+## [4.0.0](https://github.com/tomjs/release-cli/compare/v3.1.0...v4.0.0) (2024-05-30)
+
+- feat: modify the default name of git tag and add the --line-tag option [694d2bc](https://github.com/tomjs/release-cli/commit/694d2bc)
+
 ## [3.1.0](https://github.com/tomjs/release-cli/compare/v3.0.0...v3.1.0) (2024-05-30)
 
 - feat: optimize git commit [38da010](https://github.com/tomjs/release-cli/commit/38da010)
