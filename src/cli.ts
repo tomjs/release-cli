@@ -32,6 +32,7 @@ Options
   --branch              Name of the release branch (default: main | master)
   --tag <tag>           Publish under a given dist-tag (default: "latest")
   --scoped-tag          Use scoped package name as git tag
+  --line-tag            Replace the '-' in the package name with '/' as git tag (eg. tomjs-release-cli-v1.0.0)
   --no-log              Skips generating changelog
   --log-full            Generate a full changelog and replace the existing content, not recommended (default: false)
   --no-log-commit       Don't add git commit SHA and link to the changelog
@@ -79,6 +80,10 @@ Options
         type: 'string',
       },
       scopedTag: {
+        type: 'boolean',
+        // default: false,
+      },
+      lineTag: {
         type: 'boolean',
         // default: false,
       },
@@ -164,6 +169,7 @@ if (flags.h) {
     {
       gitChecks: true,
       scopedTag: false,
+      lineTag: false,
       log: true,
       publish: true,
       build: true,

@@ -10,6 +10,7 @@ export interface ReleaseCLIOptions {
   preid?: string;
   tag?: string;
   scopedTag?: boolean;
+  lineTag?: boolean;
   log?: boolean;
   logFull?: boolean;
   logCommit?: boolean;

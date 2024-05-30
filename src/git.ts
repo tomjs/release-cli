@@ -122,31 +122,36 @@ export function clearTagVersion(tag: string) {
   return tag.replace(/(.+(_|-|@))/, '').replace('v', '');
 }
 
-export function getGitTagPrefixLegacy(name: string, opts: ReleaseOptions) {
-  const { isMonorepo, scopedTag } = opts;
+export interface GitTagVersionOptions {
+  isMonorepo?: boolean;
+  scopedTag?: boolean;
+  lineTag?: boolean;
+}
+
+export function getGitTagPrefixRelease(name: string, isMonorepo?: boolean) {
+  return getGitTagPrefix(name, { isMonorepo, scopedTag: false, lineTag: false });
+}
+
+export function getGitTagVersionRelease(name: string, version: string, isMonorepo?: boolean) {
+  return getGitTagPrefixRelease(name, isMonorepo) + version;
+}
+
+export function getGitTagPrefix(name: string, opts: GitTagVersionOptions) {
+  const { isMonorepo, scopedTag, lineTag } = opts;
   if (isMonorepo) {
     const names = name.split('/');
+    if (lineTag) {
+      const pre = scopedTag ? name.replace('@', '').replace('/', '-') : names[names.length - 1];
+      return `${pre}-v`;
+    }
+
     const pre = scopedTag ? name : names[names.length - 1];
     return `${pre}@`;
   }
   return 'v';
 }
 
-export function getGitTagPrefix(name: string, opts: ReleaseOptions) {
-  const { isMonorepo, scopedTag } = opts;
-  if (isMonorepo) {
-    const names = name.split('/');
-    const pre = scopedTag ? name.replace('@', '').replace('/', '-') : names[names.length - 1];
-    return `${pre}-v`;
-  }
-  return 'v';
-}
-
-export function getGitTagVersionLegacy(name: string, version: string, opts: ReleaseOptions) {
-  return getGitTagPrefixLegacy(name, opts) + version;
-}
-
-export function getGitTagVersion(name: string, version: string, opts: ReleaseOptions) {
+export function getGitTagVersion(name: string, version: string, opts: GitTagVersionOptions) {
   return getGitTagPrefix(name, opts) + version;
 }
 
@@ -163,12 +168,10 @@ export async function getGitTags(opts: ReleaseOptions) {
   const prefixMap: Record<string, string> = {};
   if (isMonorepo) {
     pkgNames.forEach(name => {
-      prefixMap[getGitTagPrefixLegacy(name, { isMonorepo, scopedTag: true } as ReleaseOptions)] =
-        name;
-      prefixMap[getGitTagPrefixLegacy(name, { isMonorepo, scopedTag: false } as ReleaseOptions)] =
-        name;
-      prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: true } as ReleaseOptions)] = name;
-      prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: false } as ReleaseOptions)] = name;
+      prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: true, lineTag: false })] = name;
+      prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: false, lineTag: false })] = name;
+      prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: true, lineTag: true })] = name;
+      prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: false, lineTag: true })] = name;
     });
   }
   const prefixKeys = Object.keys(prefixMap);

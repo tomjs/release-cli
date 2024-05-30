@@ -7,6 +7,7 @@ import {
   getCommitsByTags,
   getGitTags,
   getGitTagVersion,
+  getGitTagVersionRelease,
   releaseCompareUrl,
   releaseNotes,
 } from './git.js';
@@ -196,12 +197,12 @@ async function createChangelog(opts: ReleaseOptions) {
 }
 
 async function bumpVersionAndTag(pkg: PackageInfo, opts: ReleaseOptions) {
-  const { dryRun } = opts;
+  const { dryRun, isMonorepo } = opts;
   // update version
   !dryRun && updatePackageVersion(pkg);
 
   await run('git add .', { cwd: pkg.dir, dryRun });
-  const tag = getGitTagVersion(pkg.name, pkg.newVersion, opts);
+  const tag = getGitTagVersionRelease(pkg.name, pkg.newVersion, isMonorepo);
   await run(`git commit -m "chore: release ${tag}"`, {
     cwd: pkg.dir,
     dryRun,

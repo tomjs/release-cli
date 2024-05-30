@@ -4,7 +4,7 @@ import open from 'open';
 import semver from 'semver';
 import {
   getGitTagVersion,
-  getGitTagVersionLegacy,
+  getGitTagVersionRelease,
   getRepositoryUrl,
   releaseCompareUrl,
   releaseNotes,
@@ -38,7 +38,7 @@ async function bumpVersionAndTag(opts: ReleaseOptions) {
   await run('git add -A', { dryRun });
 
   // git commit message
-  const msgTags = pkgs.map(s => getGitTagVersionLegacy(s.name, s.newVersion, opts));
+  const msgTags = pkgs.map(s => getGitTagVersionRelease(s.name, s.newVersion, opts.isMonorepo));
   await run(`git commit -m "chore: release ${msgTags.join(', ')}"`, {
     dryRun,
   });
