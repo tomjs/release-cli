@@ -101,16 +101,21 @@ async function checkCLIOptions(opts: ReleaseCLIOptions) {
 }
 
 async function findPackages(opts: ReleaseOptions) {
-  const { rootPackage, packages } = await getPackages(opts.cwd!);
-  if (!rootPackage || !packages || packages.length == 0) {
+  const { rootPackage, packages: _packages } = await getPackages(opts.cwd!);
+  if (!rootPackage || !_packages || _packages.length == 0) {
     throw new Error('No root package found.');
   }
+  // ignore private
+  const packages = _packages.filter(s => !s.packageJson.private);
 
-  const isSingle = packages.length === 1 && rootPackage.dir === packages[0].dir;
-  const isMonorepo = packages.length >= 1 && rootPackage.dir !== packages[0].dir;
-
-  if (!isSingle && !isMonorepo) {
-    throw new Error('Not a single package or a monorepo.');
+  let isMonorepo = false;
+  if (packages.length === 0) {
+    if (rootPackage.packageJson.private) {
+      throw new Error('Not found any valid package.');
+    }
+    packages[0] = rootPackage;
+  } else {
+    isMonorepo = rootPackage.dir !== packages[0].dir;
   }
 
   opts.isMonorepo = isMonorepo;
