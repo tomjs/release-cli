@@ -1,3 +1,7 @@
+## [4.2.0](https://github.com/tomjs/release-cli/compare/v4.1.0...v4.2.0) (2024-06-03)
+
+- feat: ignore example dir [50a05fc](https://github.com/tomjs/release-cli/commit/50a05fc)
+
 ## [4.1.0](https://github.com/tomjs/release-cli/compare/v4.0.0...v4.1.0) (2024-05-31)
 
 - fix: pnpm workspace [fd25581](https://github.com/tomjs/release-cli/commit/fd25581)
