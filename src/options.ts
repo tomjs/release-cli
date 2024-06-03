@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { getPackages } from '@manypkg/get-packages';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
@@ -106,7 +107,14 @@ async function findPackages(opts: ReleaseOptions) {
     throw new Error('No root package found.');
   }
   // ignore private
-  const packages = _packages.filter(s => !s.packageJson.private);
+
+  const packages = _packages.filter(s => {
+    if (s.packageJson.private) {
+      return false;
+    }
+    const dirname = path.dirname(s.relativeDir);
+    return !['example', 'examples'].includes(dirname);
+  });
 
   let isMonorepo = false;
   if (packages.length === 0) {
