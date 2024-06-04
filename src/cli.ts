@@ -43,7 +43,7 @@ Options
   --git-compare-url     Git compare url template, default: "{url}/compare/{diff}"
   --strict              Strict mode, will make some checks more strict (default: false)
   --no-publish          Skips publishing
-  --no-build            Skips run build script before publishing
+  --build               Run build script before publishing (You can also use "prepublishOnly")
   --no-tag-merge        When publishing multiple packages, each package has its own independent tag and commit
   --otp                 This is a one-time password from a two-factor authenticator
   --no-release-draft    Skips opening a GitHub release draft
@@ -115,7 +115,7 @@ Options
       },
       build: {
         type: 'boolean',
-        // default: true,
+        // default: false,
       },
       tagMerge: {
         type: 'boolean',
@@ -172,7 +172,7 @@ if (flags.h) {
       lineTag: false,
       log: true,
       publish: true,
-      build: true,
+      build: false,
       tagMerge: true,
       verbose: isDev,
     } as ReleaseCLIOptions,

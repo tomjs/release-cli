@@ -65,6 +65,7 @@ Options
   --branch              Name of the release branch (default: main | master)
   --tag <tag>           Publish under a given dist-tag (default: "latest")
   --scoped-tag          Use scoped package name as git tag
+  --line-tag            Replace the '-' in the package name with '/' as git tag (eg. tomjs-release-cli-v1.0.0)
   --no-log              Skips generating changelog
   --log-full            Generate a full changelog and replace the existing content, not recommended (default: false)
   --no-log-commit       Don't add git commit SHA and link to the changelog
@@ -75,7 +76,7 @@ Options
   --git-compare-url     Git compare url template, default: "{url}/compare/{diff}"
   --strict              Strict mode, will make some checks more strict (default: false)
   --no-publish          Skips publishing
-  --no-build            Skips run build script before publishing
+  --build               Run build script before publishing (You can also use "prepublishOnly")
   --no-tag-merge        When publishing multiple packages, each package has its own independent tag and commit
   --otp                 This is a one-time password from a two-factor authenticator
   --no-release-draft    Skips opening a GitHub release draft
