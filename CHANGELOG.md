@@ -1,3 +1,7 @@
+## [4.3.0](https://github.com/tomjs/release-cli/compare/v4.2.0...v4.3.0) (2024-06-04)
+
+- feat: modify the default behavior of build to false [7f5f3ff](https://github.com/tomjs/release-cli/commit/7f5f3ff)
+
 ## [4.2.0](https://github.com/tomjs/release-cli/compare/v4.1.0...v4.2.0) (2024-06-03)
 
 - feat: ignore example dir [50a05fc](https://github.com/tomjs/release-cli/commit/50a05fc)
