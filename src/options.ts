@@ -381,7 +381,7 @@ function getVersionChoices(pkg: PackageInfo, opts: ReleaseOptions) {
       value: inc('patch'),
     });
   } else {
-    types = ['prepatch', 'patch', 'minor', 'major'];
+    types = ['prerelease', 'patch', 'minor', 'major'];
     const pi = PRERELEASE_VERSIONS.indexOf(preId);
     if (pi === -1) {
       preIds = [preId];

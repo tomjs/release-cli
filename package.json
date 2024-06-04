@@ -43,7 +43,8 @@
     "lint": "run-s lint:eslint lint:prettier",
     "lint:eslint": "eslint \"{src,test}/**/*.ts\" *.{js,cjs,ts} --fix --cache",
     "lint:prettier": "prettier --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@manypkg/get-packages": "^2.2.1",
