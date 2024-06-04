@@ -1,3 +1,7 @@
+## [4.4.0](https://github.com/tomjs/release-cli/compare/v4.3.0...v4.4.0) (2024-06-04)
+
+- fix: unstable versions should use prerelease [4d761e4](https://github.com/tomjs/release-cli/commit/4d761e4)
+
 ## [4.3.0](https://github.com/tomjs/release-cli/compare/v4.2.0...v4.3.0) (2024-06-04)
 
 - feat: modify the default behavior of build to false [7f5f3ff](https://github.com/tomjs/release-cli/commit/7f5f3ff)
