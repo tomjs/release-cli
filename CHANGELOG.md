@@ -1,3 +1,8 @@
+## [4.4.1](https://github.com/tomjs/release-cli/compare/v4.4.0...v4.4.1) (2024-06-07)
+
+- fix: workspace cwd [e1c904a](https://github.com/tomjs/release-cli/commit/e1c904a)
+- chore: update packageManager [68bae43](https://github.com/tomjs/release-cli/commit/68bae43)
+
 ## [4.4.0](https://github.com/tomjs/release-cli/compare/v4.3.0...v4.4.0) (2024-06-04)
 
 - fix: unstable versions should use prerelease [4d761e4](https://github.com/tomjs/release-cli/commit/4d761e4)
