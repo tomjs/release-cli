@@ -131,6 +131,10 @@ async function findPackages(opts: ReleaseOptions) {
   const pm = await getPackageManagerConfig(rootPackage.dir, rootPackage.packageJson as PackageJson);
   opts.packageManager = pm;
 
+  // fix cwd
+  opts.cwd = rootPackage.dir;
+  setOptions(opts);
+
   const pkgs = packages
     .filter(s => !s.packageJson.private)
     .map(s => {
