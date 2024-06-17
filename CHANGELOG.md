@@ -1,3 +1,7 @@
+## [4.4.2](https://github.com/tomjs/release-cli/compare/v4.4.1...v4.4.2) (2024-06-18)
+
+- feat: use @tomjs/pkg [337c34c](https://github.com/tomjs/release-cli/commit/337c34c)
+
 ## [4.4.1](https://github.com/tomjs/release-cli/compare/v4.4.0...v4.4.1) (2024-06-07)
 
 - fix: workspace cwd [e1c904a](https://github.com/tomjs/release-cli/commit/e1c904a)
