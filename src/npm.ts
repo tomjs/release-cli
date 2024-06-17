@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { PackageManager } from '@tomjs/pkg';
 import inquirer from 'inquirer';
 import { NPM_REGISTRY, NPM_YARN_REGISTRY } from './constants.js';
 import { logger } from './logger.js';
-import type { PackageManager } from './manager.js';
 import type { NpmInfo, PackageInfo, ReleaseOptions } from './types.js';
 import { getScope, removeTrailingSlashes, run } from './utils.js';
 

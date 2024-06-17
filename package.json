@@ -49,6 +49,7 @@
   "dependencies": {
     "@manypkg/get-packages": "^2.2.1",
     "@tomjs/logger": "^1.0.0",
+    "@tomjs/pkg": "^1.0.1",
     "chalk": "^5.3.0",
     "cosmiconfig": "^9.0.0",
     "dayjs": "^1.11.11",

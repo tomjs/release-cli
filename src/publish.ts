@@ -195,6 +195,11 @@ async function runGithubRelease(opts: ReleaseOptions) {
 
     logger.success(`${chalk.blue(pkg.name)} github release: ${chalk.green(repoUrl.toString())}`);
 
+    console.log();
+    logger.success(
+      `${chalk.blue(pkg.name)} npm sync: ${chalk.green(`https://npmmirror.com/sync/${pkg.name}`)}`,
+    );
+
     if (!opts.dryRun) {
       await open(repoUrl.toString());
     }

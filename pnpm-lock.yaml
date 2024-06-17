@@ -14,6 +14,9 @@ importers:
       '@tomjs/logger':
         specifier: ^1.0.0
         version: 1.0.0
+      '@tomjs/pkg':
+        specifier: ^1.0.1
+        version: 1.0.1
       chalk:
         specifier: ^5.3.0
         version: 5.3.0
@@ -692,6 +695,14 @@ packages:
 
   '@tomjs/logger@1.0.0':
     resolution: {integrity: sha512-3mf2ODhcBhEgJUx13c+HXsCetgQpspdfORtcGDvhB8GHENcPCpZ3bJ3C+lTtyTBZ49TfD2NAhqTxbCTe41s8LA==}
+    engines: {node: '>=16'}
+
+  '@tomjs/node@2.2.0':
+    resolution: {integrity: sha512-H8K+kFZD5WVZO96NkyqY7jmrOoMLM7xMmnn70psPUwT6bnXc7xZCvh1owv5B3eOszZOifdmZK9h2IcRRC9GD8w==}
+    engines: {node: '>=16'}
+
+  '@tomjs/pkg@1.0.1':
+    resolution: {integrity: sha512-WKaknC8fECLASIfQ3IO4T6xsH0+BuJd9Wrqko4ZGQhVj0a6Qx6zn9VGMYy+mFZmlNnWMp8Q5vrf1k3gItBgrag==, tarball: https://registry.npmjs.org/@tomjs/pkg/-/pkg-1.0.1.tgz}
     engines: {node: '>=16'}
 
   '@tomjs/prettier@1.4.1':
@@ -2876,6 +2887,10 @@ packages:
     resolution: {integrity: sha512-Q08/0IrpvM+NMY9PA2rti9Jb+JejTddwmwmVQGskAlhtcrw1wsRzoR6ode6mR+OAabNa75w/dxedSUY2mlphaQ==}
     engines: {node: '>=16'}
 
+  type-fest@4.20.1:
+    resolution: {integrity: sha512-R6wDsVsoS9xYOpy8vgeBlqpdOyzJ12HNfQhC/aAKWM3YoCV9TtunJzh/QpkMgeDhkoynDcw5f1y+qF9yc/HHyg==}
+    engines: {node: '>=16'}
+
   typed-array-buffer@1.0.2:
     resolution: {integrity: sha512-gEymJYKZtKXzzBzM4jqa9w6Q1Jjm7x2d+sh19AdsD4wqnMPDYyvwpsIc2Q/835kHuo3BEQ7CjelGhfTsoBb2MQ==}
     engines: {node: '>= 0.4'}
@@ -3541,6 +3556,14 @@ snapshots:
       dayjs: 1.11.11
       log-symbols: 4.1.0
       strip-ansi: 6.0.1
+
+  '@tomjs/node@2.2.0': {}
+
+  '@tomjs/pkg@1.0.1':
+    dependencies:
+      '@tomjs/node': 2.2.0
+      semver: 7.6.2
+      type-fest: 4.20.1
 
   '@tomjs/prettier@1.4.1(prettier@3.2.5)':
     dependencies:
@@ -5973,6 +5996,8 @@ snapshots:
   type-fest@0.21.3: {}
 
   type-fest@4.18.3: {}
+
+  type-fest@4.20.1: {}
 
   typed-array-buffer@1.0.2:
     dependencies:

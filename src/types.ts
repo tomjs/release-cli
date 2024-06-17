@@ -1,6 +1,6 @@
+import type { PackageManager } from '@tomjs/pkg';
 import type { PackageJson } from 'type-fest';
 import { ReleaseCLIOptions } from '../index.js';
-import type { PackageManager } from './manager.js';
 
 export interface GitTagInfo {
   name: string;
