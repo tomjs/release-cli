@@ -1,3 +1,8 @@
+## [4.5.0](https://github.com/tomjs/release-cli/compare/v4.4.2...v4.5.0) (2024-06-19)
+
+- chore: update deps [8f0d3a5](https://github.com/tomjs/release-cli/commit/8f0d3a5)
+- feat: print the npmjs.com site after a successful release [24c1af9](https://github.com/tomjs/release-cli/commit/24c1af9)
+
 ## [4.4.2](https://github.com/tomjs/release-cli/compare/v4.4.1...v4.4.2) (2024-06-18)
 
 - feat: use @tomjs/pkg [337c34c](https://github.com/tomjs/release-cli/commit/337c34c)
