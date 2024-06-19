@@ -199,6 +199,10 @@ async function runGithubRelease(opts: ReleaseOptions) {
     logger.success(
       `${chalk.blue(pkg.name)} npm sync: ${chalk.green(`https://npmmirror.com/sync/${pkg.name}`)}`,
     );
+    console.log();
+    logger.success(
+      `${chalk.blue(pkg.name)} npm site: ${chalk.green(`https://www.npmjs.com/package/${pkg.name}`)}`,
+    );
 
     if (!opts.dryRun) {
       await open(repoUrl.toString());
