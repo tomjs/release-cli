@@ -1,3 +1,7 @@
+## [4.5.1](https://github.com/tomjs/release-cli/compare/v4.5.0...v4.5.1) (2024-12-16)
+
+- fix: support private registry [194a4b6](https://github.com/tomjs/release-cli/commit/194a4b6)
+
 ## [4.5.0](https://github.com/tomjs/release-cli/compare/v4.4.2...v4.5.0) (2024-06-19)
 
 - chore: update deps [8f0d3a5](https://github.com/tomjs/release-cli/commit/8f0d3a5)
