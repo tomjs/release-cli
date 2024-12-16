@@ -58,17 +58,22 @@ const _getNpmRegistry = async (pm: PackageManager, pkg?: PackageInfo) => {
   try {
     const pkgName = pkg?.name;
     let registry = pkg?.packageJson.publishConfig?.registry;
-    if (!registry) {
-      const cmd = pm.id === 'berry' ? getBerryRegistryCmd(pkgName) : getNpmRegistryCmd(pm, pkgName);
-
-      registry = await run(cmd, {
-        trim: true,
-        cwd: ['npm', 'yarn'].includes(pm.id) ? undefined : pkg?.dir,
-      });
-
-      registry = registry === 'undefined' ? '' : registry;
+    if (registry) {
+      return removeTrailingSlashes(registry);
     }
+
+    const cmd = pm.id === 'berry' ? getBerryRegistryCmd(pkgName) : getNpmRegistryCmd(pm, pkgName);
+
+    registry = await run(cmd, {
+      trim: true,
+      cwd: ['npm', 'yarn'].includes(pm.id) ? undefined : pkg?.dir,
+    });
+
+    registry = registry === 'undefined' ? '' : registry;
+
+    return removeTrailingSlashes(registry) || NPM_REGISTRY;
   } catch {}
+
   return NPM_REGISTRY;
 };
 

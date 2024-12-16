@@ -123,15 +123,15 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
 
   try {
     const { stdout } = await $(execOpts)`${cmd}`;
-
+    const std = Array.isArray(stdout) ? stdout.join('\n') : (stdout as string) || '';
     spin && spin.stop();
 
-    log(stdout);
+    log(std);
 
     if (trim) {
-      return stdout.trim().replace(/\n|\r/g, '');
+      return std.trim().replace(/\n|\r/g, '');
     }
-    return stdout.trim();
+    return std.trim();
   } catch (e: any) {
     spin && spin.stop();
 

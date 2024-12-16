@@ -50,13 +50,13 @@ async function bumpVersionAndTag(opts: ReleaseOptions) {
 }
 
 async function runPublishPackages(opts: ReleaseOptions) {
-  const { pkgs, dryRun } = opts;
+  const { pkgs, dryRun, packageManager: pm } = opts;
   const twoFactorState = getTwoFactorState(opts);
 
   if (opts.publish) {
     for (const pkg of pkgs) {
       if (!dryRun && opts.build && pkg.packageJson?.scripts?.build) {
-        await run('npm run build', { cwd: pkg.dir });
+        await run(`${pm.cli} run build`, { cwd: pkg.dir });
       }
       await publishOnePackage(pkg, opts, twoFactorState);
       const tag = `${pkg.name}@${pkg.newVersion}`;
@@ -66,10 +66,8 @@ async function runPublishPackages(opts: ReleaseOptions) {
 
   const gitUrl = await getRepositoryUrl();
   if (gitUrl) {
-    try {
-      await run(`git push --follow-tags`, { dryRun });
-    } catch {
-      await run(`git push`, { dryRun });
+    await run(`git push`, { dryRun });
+    if (!opts.releaseDraft) {
       await run(`git push --tags`, { dryRun });
     }
   }
