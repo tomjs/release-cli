@@ -1,3 +1,8 @@
+## [4.6.0](https://github.com/tomjs/release-cli/compare/v4.5.1...v4.6.0) (2025-05-11)
+
+- fix: GitHost.fromUrl d.ts  [2da3fed](https://github.com/tomjs/release-cli/commit/2da3fed)
+- feat: update lint and fix clear version error  [c0d77d1](https://github.com/tomjs/release-cli/commit/c0d77d1)
+
 ## [4.5.1](https://github.com/tomjs/release-cli/compare/v4.5.0...v4.5.1) (2024-12-16)
 
 - fix: support private registry [194a4b6](https://github.com/tomjs/release-cli/commit/194a4b6)
