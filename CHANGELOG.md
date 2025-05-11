@@ -1,3 +1,7 @@
+## [4.6.1](https://github.com/tomjs/release-cli/compare/v4.6.0...v4.6.1) (2025-05-11)
+
+- refactor: remove debug code  [52e9458](https://github.com/tomjs/release-cli/commit/52e9458)
+
 ## [4.6.0](https://github.com/tomjs/release-cli/compare/v4.5.1...v4.6.0) (2025-05-11)
 
 - fix: GitHost.fromUrl d.ts  [2da3fed](https://github.com/tomjs/release-cli/commit/2da3fed)
