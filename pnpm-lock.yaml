@@ -15,8 +15,8 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       '@tomjs/logger':
-        specifier: ^1.2.0
-        version: 1.2.0
+        specifier: ^1.4.0
+        version: 1.4.0
       '@tomjs/pkg':
         specifier: ^1.0.4
         version: 1.0.4
@@ -989,8 +989,8 @@ packages:
     peerDependencies:
       eslint: ^9.22.0
 
-  '@tomjs/logger@1.2.0':
-    resolution: {integrity: sha512-ZBlcILQuzfQlyePT83cvOEXkYzv5JLrq6ocNJgOKlY6Lw1FDDEMLztreFQM6p5c4ifukU75q37/ZgcYuO5xoEA==}
+  '@tomjs/logger@1.4.0':
+    resolution: {integrity: sha512-4YoqybnDHDNRr+Sw0PTW08pcK+P+Kla3QvlfwLIZzBRbKarRuq6OBJqZ8UDFuoITLmFigPwclrJKPu3S4f1YGg==}
     engines: {node: '>=16'}
 
   '@tomjs/node@2.2.0':
@@ -4785,7 +4785,7 @@ snapshots:
       - typescript
       - vitest
 
-  '@tomjs/logger@1.2.0':
+  '@tomjs/logger@1.4.0':
     dependencies:
       chalk: 4.1.2
       dayjs: 1.11.13

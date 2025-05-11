@@ -221,7 +221,6 @@ async function checkRepositoryUrl(opts: ReleaseOptions) {
   }
 
   const gitUrl = GitHost.parseUrl(repoUrl);
-  console.log(gitUrl);
   const protocols = ['git+ssh:', 'ssh:', 'git+http:', 'http:', 'git+https:', 'https:', 'git:'];
   if (!gitUrl || !protocols.includes(gitUrl.protocol)) {
     return invalid(`${chalk.red(repoUrl)} is not a valid git url.`);
