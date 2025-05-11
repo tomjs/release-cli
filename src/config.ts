@@ -1,6 +1,6 @@
+import type { ReleaseCLIOptions } from './types';
 import fs from 'node:fs';
 import { cosmiconfig } from 'cosmiconfig';
-import type { ReleaseCLIOptions } from './types.js';
 
 export async function getReleaseConfig(opts: ReleaseCLIOptions) {
   const explorer = cosmiconfig('rc', {

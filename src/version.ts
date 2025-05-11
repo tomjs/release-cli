@@ -1,6 +1,6 @@
 import type { ChalkInstance } from 'chalk';
-import chalk from 'chalk';
 import type { ReleaseType, SemVer } from 'semver';
+import chalk from 'chalk';
 import semver from 'semver';
 
 export const SEMVER_PRE_RELEASE_TYPES: ReleaseType[] = [

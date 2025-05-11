@@ -1,17 +1,16 @@
-import chalk from 'chalk';
 import type { Options as ExecaOptions } from 'execa';
+import type { Ora } from 'ora';
+import type { ReleaseCLIOptions } from './types';
+import chalk from 'chalk';
 import { $ } from 'execa';
 import inquirer from 'inquirer';
-import type { Ora } from 'ora';
 import ora from 'ora';
-import { ReleaseError } from './error.js';
-import { logger } from './logger.js';
-import type { ReleaseCLIOptions } from './types.js';
+import { ReleaseError } from './error';
+import { logger } from './logger';
 
 /**
  * Joins an array of strings into a string with comma and space separator.
  * @param arr The array of strings to join.
- * @returns
  */
 export function joinArray(arr: string[], color = chalk.green): string {
   return arr.map(s => (color ? `"${color(s)}"` : `"${s}"`)).join(', ');
@@ -62,7 +61,6 @@ interface RunExecaOptions extends ExecaOptions {
 /**
  * create terminal spinner.
  * @param msg display message
- * @returns
  */
 export function createSpin(msg: string) {
   return ora(fixOraDisplay(msg)).start();
@@ -103,7 +101,8 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
   const log = (str: string) => {
     if (_opts.verbose) {
       logger.debug(str);
-    } else {
+    }
+    else {
       logger.write(str);
     }
   };
@@ -132,7 +131,8 @@ export async function run(cmd: string | string[], options?: RunExecaOptions): Pr
       return std.trim().replace(/\n|\r/g, '');
     }
     return std.trim();
-  } catch (e: any) {
+  }
+  catch (e: any) {
     spin && spin.stop();
 
     const msg = e.stderr || e.message;
@@ -158,7 +158,6 @@ export function getScope(name: string) {
 /**
  * Remove URL trailing slashes
  * @param url
- * @returns
  */
 export function removeTrailingSlashes(url: string) {
   return url.replace(/\/+$/, '');

@@ -1,15 +1,17 @@
+import type { ReleaseType } from 'semver';
+import type { PackageInfo, ReleaseCLIOptions, ReleaseOptions } from './types';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getPackages } from '@manypkg/get-packages';
 import chalk from 'chalk';
+import GitHost from 'hosted-git-info';
 import inquirer from 'inquirer';
 import { publint } from 'publint';
 import { formatMessage } from 'publint/utils';
-import type { ReleaseType } from 'semver';
 import semver from 'semver';
-import type { PackageJson } from 'type-fest';
-import { GIT_REPO_HOSTS, NPM_REGISTRY } from './constants.js';
-import { ReleaseError } from './error.js';
+import { GIT_REPO_HOSTS, NPM_REGISTRY } from './constants';
+import { ReleaseError } from './error';
+
 import {
   checkBranch,
   checkGitRepo,
@@ -17,20 +19,18 @@ import {
   getChangedPackageNames,
   getCurrentGitSHA,
   getRepositoryUrl,
-  parseGitUrl,
-} from './git.js';
-import { logger } from './logger.js';
-import { getPackageManagerConfig } from './manager.js';
-import { getNpmInfo, getNpmRegistry } from './npm.js';
-import type { PackageInfo, ReleaseCLIOptions, ReleaseOptions } from './types.js';
-import { createSpin, isScopedPackage, joinArray, setOptions } from './utils.js';
+} from './git';
+import { logger } from './logger';
+import { getPackageManagerConfig } from './manager';
+import { getNpmInfo, getNpmRegistry } from './npm';
+import { createSpin, isScopedPackage, joinArray, setOptions } from './utils';
 import {
   diffColor,
   getPreReleaseId,
   incVersion,
   PRERELEASE_VERSIONS,
   SEMVER_TYPES,
-} from './version.js';
+} from './version';
 
 export async function getReleaseOptions(options: ReleaseCLIOptions) {
   const opts = Object.assign({}, options) as ReleaseOptions;
@@ -103,12 +103,12 @@ async function checkCLIOptions(opts: ReleaseCLIOptions) {
 
 async function findPackages(opts: ReleaseOptions) {
   const { rootPackage, packages: _packages } = await getPackages(opts.cwd!);
-  if (!rootPackage || !_packages || _packages.length == 0) {
+  if (!rootPackage || !_packages || _packages.length === 0) {
     throw new Error('No root package found.');
   }
   // ignore private
 
-  const packages = _packages.filter(s => {
+  const packages = _packages.filter((s) => {
     if (s.packageJson.private) {
       return false;
     }
@@ -122,13 +122,14 @@ async function findPackages(opts: ReleaseOptions) {
       throw new Error('Not found any valid package.');
     }
     packages[0] = rootPackage;
-  } else {
+  }
+  else {
     isMonorepo = rootPackage.dir !== packages[0].dir;
   }
 
   opts.isMonorepo = isMonorepo;
 
-  const pm = await getPackageManagerConfig(rootPackage.dir, rootPackage.packageJson as PackageJson);
+  const pm = await getPackageManagerConfig(rootPackage.dir);
   opts.packageManager = pm;
 
   // fix cwd
@@ -137,7 +138,7 @@ async function findPackages(opts: ReleaseOptions) {
 
   const pkgs = packages
     .filter(s => !s.packageJson.private)
-    .map(s => {
+    .map((s) => {
       return {
         ...s,
         name: s.packageJson.name,
@@ -194,7 +195,8 @@ async function checkRepositoryUrl(opts: ReleaseOptions) {
       const repo = pkg.packageJson.repository;
       if (repo && !repoUrl) {
         repoUrl = typeof repo === 'object' ? repo.url : repo;
-        if (repoUrl) break;
+        if (repoUrl)
+          break;
       }
     }
   }
@@ -218,7 +220,7 @@ async function checkRepositoryUrl(opts: ReleaseOptions) {
     );
   }
 
-  const gitUrl: URL = parseGitUrl(repoUrl);
+  const gitUrl: URL = GitHost.fromUrl(repoUrl);
   const protocols = ['git+ssh:', 'ssh:', 'git+http:', 'http:', 'git+https:', 'https:', 'git:'];
   if (!protocols.includes(gitUrl.protocol)) {
     return invalid(`${chalk.red(repoUrl)} is not a valid git url.`);
@@ -230,8 +232,8 @@ async function checkRepositoryUrl(opts: ReleaseOptions) {
   opts.releaseDraft ??= supported;
 
   const protocol = gitUrl.protocol.includes('http:') ? 'http:' : 'https:';
-  const webUrl =
-    protocol + '//' + gitUrl.host + gitUrl.pathname.replace(/.git$/, '').replace(/\/$/, '');
+  const webUrl
+    = `${protocol}//${gitUrl.host}${gitUrl.pathname.replace(/.git$/, '').replace(/\/$/, '')}`;
 
   opts.gitUrl = webUrl;
 
@@ -239,11 +241,11 @@ async function checkRepositoryUrl(opts: ReleaseOptions) {
 
   if (opts.logCommit) {
     const link = opts.gitCommitUrl || '{url}/commit/{sha}';
-    opts.gitCommitUrl = link.replace(/{url}/g, webUrl);
+    opts.gitCommitUrl = link.replace(/\{url\}/g, webUrl);
   }
   if (opts.logCompare) {
     const link = opts.gitCompareUrl || '{url}/compare/{diff}';
-    opts.gitCompareUrl = link.replace(/{url}/g, webUrl);
+    opts.gitCompareUrl = link.replace(/\{url\}/g, webUrl);
   }
 }
 
@@ -263,7 +265,7 @@ async function checkPackageLint(pkgs: PackageInfo[]) {
     if (messages.length) {
       log(`${chalk.yellow(pkg.name)} has ${chalk.red(messages.length)} lint error`);
       for (let i = 0; i < messages.length; i++) {
-        log(`  ${i + 1}.` + formatMessage(messages[i], p) || 'unknown error');
+        log(`  ${i + 1}.${formatMessage(messages[i], p)}` || 'unknown error');
       }
     }
   }
@@ -280,7 +282,8 @@ async function selectPackages(opts: ReleaseOptions) {
   let selected: string[] = [];
   if (pkgs.length === 1) {
     selected = [pkgs[0].name];
-  } else {
+  }
+  else {
     const answers = await inquirer.prompt([
       {
         name: 'selected',
@@ -309,7 +312,7 @@ async function selectTypeVersion(opts: ReleaseOptions) {
     return;
   }
 
-  pkgs.forEach(s => {
+  pkgs.forEach((s) => {
     s.newVersion = incVersion(s.version, type, opts.preid);
   });
 
@@ -384,12 +387,14 @@ function getVersionChoices(pkg: PackageInfo, opts: ReleaseOptions) {
       name: `patch`,
       value: inc('patch'),
     });
-  } else {
+  }
+  else {
     types = ['prerelease', 'patch', 'minor', 'major'];
     const pi = PRERELEASE_VERSIONS.indexOf(preId);
     if (pi === -1) {
       preIds = [preId];
-    } else {
+    }
+    else {
       const start = pi + 1;
       if (start <= PRERELEASE_VERSIONS.length) {
         preIds = PRERELEASE_VERSIONS.slice(start);
@@ -402,16 +407,17 @@ function getVersionChoices(pkg: PackageInfo, opts: ReleaseOptions) {
     });
   }
 
-  types.forEach(type => {
+  types.forEach((type) => {
     if (type.startsWith('pre')) {
-      preIds.forEach(preId => {
+      preIds.forEach((preId) => {
         const v = inc(type, preId);
         choices.push({
           name: `${type} (${preId})`,
           value: v,
         });
       });
-    } else {
+    }
+    else {
       choices.push({
         name: `${type}`,
         value: inc(type),
@@ -420,11 +426,11 @@ function getVersionChoices(pkg: PackageInfo, opts: ReleaseOptions) {
   });
 
   let maxLen = 0;
-  choices.forEach(c => {
+  choices.forEach((c) => {
     maxLen = Math.max(maxLen, c.name.length);
   });
 
-  choices.forEach(c => {
+  choices.forEach((c) => {
     c.name = `${c.name.padEnd(maxLen + 3)} ${diffColor(version, c.value)}`;
   });
 
@@ -437,7 +443,8 @@ async function selectNpmTag(pkg: PackageInfo, opts: ReleaseOptions) {
   if (opts.tag) {
     pkg.tag = opts.tag;
     return;
-  } else if (preId === undefined) {
+  }
+  else if (preId === undefined) {
     pkg.tag = 'latest';
     return;
   }
@@ -448,7 +455,8 @@ async function selectNpmTag(pkg: PackageInfo, opts: ReleaseOptions) {
     const pre = ['pre', 'previous'].find(s => tagKeys.includes(s));
     if (pre) {
       preId = pre;
-    } else {
+    }
+    else {
       tagKeys.push('pre');
       tagKeys = [...new Set(tagKeys)];
     }
@@ -463,7 +471,7 @@ async function selectNpmTag(pkg: PackageInfo, opts: ReleaseOptions) {
       default: tagKeys.find(s => s === preId),
       choices() {
         return [
-          ...tagKeys.map(tag => {
+          ...tagKeys.map((tag) => {
             let v = tags[tag];
             v = v ? ` (${v})` : '';
             return {
@@ -489,7 +497,7 @@ async function selectNpmTag(pkg: PackageInfo, opts: ReleaseOptions) {
         }
 
         if (input.toLowerCase() === 'latest') {
-          return "It's not possible to publish pre-releases under the `latest` tag. Please specify something else, for example, `next`.";
+          return 'It\'s not possible to publish pre-releases under the `latest` tag. Please specify something else, for example, `next`.';
         }
 
         return true;

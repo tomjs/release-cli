@@ -1,6 +1,6 @@
 import type { PackageManager } from '@tomjs/pkg';
 import type { PackageJson } from 'type-fest';
-import { ReleaseCLIOptions } from '../index.js';
+import type { ReleaseCLIOptions } from '../index';
 
 export interface GitTagInfo {
   name: string;
@@ -19,9 +19,9 @@ export interface Changelog {
 }
 
 export interface NpmInfo {
-  name: string;
-  version: string;
-  versions: string[];
+  'name': string;
+  'version': string;
+  'versions': string[];
   'dist-tags': Record<string, string>;
 }
 
@@ -59,7 +59,7 @@ export interface PackageInfo {
   npmInfo: NpmInfo;
 }
 
-export { ReleaseCLIOptions };
+export type { ReleaseCLIOptions };
 
 export interface ReleaseOptions extends ReleaseCLIOptions {
   packageManager: PackageManager;

@@ -1,8 +1,18 @@
 {
   "name": "@tomjs/release-cli",
   "type": "module",
-  "version": "4.5.1",
+  "version": "4.5.2",
+  "packageManager": "pnpm@10.10.0",
   "description": "A CLI tool to automatically publish npm packages.",
+  "author": {
+    "name": "Tom Gao",
+    "email": "tom@tomgao.cc"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomjs/release-cli.git"
+  },
   "keywords": [
     "cli",
     "release",
@@ -10,11 +20,7 @@
     "changelog",
     "publish"
   ],
-  "author": {
-    "name": "Tom Gao",
-    "email": "tom@tomgao.cc"
-  },
-  "license": "MIT",
+  "types": "./index.d.ts",
   "bin": {
     "rc": "./dist/index.js",
     "release-cli": "./dist/index.js"
@@ -23,69 +29,61 @@
     "dist",
     "index.d.ts"
   ],
-  "types": "./index.d.ts",
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "pnpm@9.2.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tomjs/release-cli.git"
   },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
     "test": "vitest",
-    "lint": "run-s lint:eslint lint:prettier",
-    "lint:eslint": "eslint \"{src,test}/**/*.ts\" *.{js,cjs,ts} --fix --cache",
-    "lint:prettier": "prettier --write .",
-    "prepare": "husky",
+    "lint": "eslint --fix",
+    "prepare": "simple-git-hooks",
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
+    "@antfu/eslint-config": "^4.13.0",
     "@manypkg/get-packages": "^2.2.1",
-    "@tomjs/logger": "^1.1.2",
-    "@tomjs/pkg": "^1.0.2",
-    "chalk": "^5.3.0",
+    "@tomjs/logger": "^1.2.0",
+    "@tomjs/pkg": "^1.0.4",
+    "chalk": "^5.4.1",
     "cosmiconfig": "^9.0.0",
-    "dayjs": "^1.11.11",
-    "execa": "^9.2.0",
-    "hosted-git-info": "^7.0.2",
+    "dayjs": "^1.11.13",
+    "execa": "^9.5.3",
+    "hosted-git-info": "^8.1.0",
     "inquirer": "9.2.17",
     "is-subdir": "^1.2.0",
     "log-symbols": "^6.0.0",
     "meow": "^13.2.0",
-    "open": "^10.1.0",
-    "ora": "^8.0.1",
-    "publint": "^0.2.8",
-    "semver": "^7.6.2",
+    "open": "^10.1.2",
+    "ora": "^8.2.0",
+    "publint": "^0.3.12",
+    "semver": "^7.7.1",
     "strip-ansi": "^7.1.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.3.0",
-    "@tomjs/commitlint": "^3.3.0",
-    "@tomjs/eslint": "^3.2.0",
-    "@tomjs/prettier": "^1.4.1",
-    "@tomjs/tsconfig": "^1.6.0",
+    "@commitlint/cli": "^19.8.1",
+    "@tomjs/commitlint": "^4.0.0",
+    "@tomjs/eslint": "^5.0.0",
+    "@tomjs/tsconfig": "^1.7.2",
     "@types/hosted-git-info": "^3.0.5",
-    "@types/inquirer": "^9.0.7",
-    "@types/node": "^18.19.36",
-    "@types/semver": "^7.5.8",
+    "@types/inquirer": "^9.0.8",
+    "@types/node": "^18.19.100",
+    "@types/semver": "^7.7.0",
     "cross-env": "^7.0.3",
-    "eslint": "^8.57.0",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.7",
+    "eslint": "^9.26.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.2.5",
-    "rimraf": "^5.0.7",
-    "tsup": "^8.1.0",
-    "tsx": "^4.15.6",
-    "type-fest": "^4.20.1",
-    "typescript": "^5.4.5",
-    "vitest": "^1.6.0"
+    "rimraf": "^6.0.1",
+    "simple-git-hooks": "^2.13.0",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.4",
+    "type-fest": "^4.41.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.3"
   }
 }

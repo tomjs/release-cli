@@ -1,16 +1,16 @@
-import meow from 'meow';
 import type { ReleaseType } from 'semver';
-import { runGenerateChangelog } from './changelog.js';
-import { getReleaseConfig } from './config.js';
-import { isDev } from './constants.js';
-import { ReleaseErrorCode } from './error.js';
-import { resetGitSubmit } from './git.js';
-import { logger } from './logger.js';
-import { getReleaseOptions } from './options.js';
-import { runPublish } from './publish.js';
-import type { ReleaseCLIOptions } from './types.js';
-import { getOptions, joinArray } from './utils.js';
-import { PRERELEASE_VERSIONS, SEMVER_TYPES } from './version.js';
+import type { ReleaseCLIOptions } from './types';
+import meow from 'meow';
+import { runGenerateChangelog } from './changelog';
+import { getReleaseConfig } from './config';
+import { isDev } from './constants';
+import { ReleaseErrorCode } from './error';
+import { resetGitSubmit } from './git';
+import { logger } from './logger';
+import { getReleaseOptions } from './options';
+import { runPublish } from './publish';
+import { getOptions, joinArray } from './utils';
+import { PRERELEASE_VERSIONS, SEMVER_TYPES } from './version';
 
 const cli = meow(
   `
@@ -152,9 +152,11 @@ Options
 const { input, flags } = cli;
 if (flags.h) {
   cli.showHelp(0);
-} else if (flags.v) {
+}
+else if (flags.v) {
   cli.showVersion();
-} else {
+}
+else {
   logger.enableDebug(!!flags.verbose);
 
   const CWD = process.cwd();
@@ -190,12 +192,14 @@ if (flags.h) {
     await runGenerateChangelog(opts);
     logger.debug(opts);
     await runPublish(opts);
-  } catch (e: any) {
+  }
+  catch (e: any) {
     const msg = e?.message;
     if (msg) {
       if (e.code === ReleaseErrorCode.WARNING || e.code === ReleaseErrorCode.EXIT) {
         logger.warning(msg);
-      } else {
+      }
+      else {
         logger.error(msg);
       }
     }

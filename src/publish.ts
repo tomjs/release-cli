@@ -1,3 +1,5 @@
+import type { TwoFactorState } from './npm';
+import type { PackageInfo, ReleaseOptions } from './types';
 import chalk from 'chalk';
 import { execa } from 'execa';
 import open from 'open';
@@ -8,12 +10,10 @@ import {
   getRepositoryUrl,
   releaseCompareUrl,
   releaseNotes,
-} from './git.js';
-import { logger } from './logger.js';
-import type { TwoFactorState } from './npm.js';
-import { getNpmEnv, getOtpCode, getTwoFactorState, updatePackageVersion } from './npm.js';
-import type { PackageInfo, ReleaseOptions } from './types.js';
-import { run } from './utils.js';
+} from './git';
+import { logger } from './logger';
+import { getNpmEnv, getOtpCode, getTwoFactorState, updatePackageVersion } from './npm';
+import { run } from './utils';
 
 export async function runPublish(opts: ReleaseOptions) {
   await bumpVersionAndTag(opts);
@@ -28,7 +28,7 @@ async function bumpVersionAndTag(opts: ReleaseOptions) {
 
   logger.info(chalk.green('Bump version and tag'));
 
-  const { pkgs: pkgs, dryRun } = opts;
+  const { pkgs, dryRun } = opts;
   if (!dryRun) {
     for (const pkg of pkgs) {
       updatePackageVersion(pkg);
@@ -121,7 +121,8 @@ async function publishOnePackage(
   try {
     await runNpmPublish(cli, getArgs(), pkg);
     twoFactorState.tryAgain = false;
-  } catch (e: any) {
+  }
+  catch (e: any) {
     if (e && needOtp(e.message)) {
       if (twoFactorState.token !== null) {
         // the current otp code must be invalid since it errored
@@ -129,22 +130,24 @@ async function publishOnePackage(
       }
       twoFactorState.tryAgain = true;
       await publishOnePackage(pkg, opts, twoFactorState);
-    } else {
+    }
+    else {
       throw e;
     }
   }
 }
 
-const needOtp = (text: string) =>
-  text.includes('code EOTP') || // npm/pnpm
-  text.includes('--otp=<code>') || // npm/pnpm
-  text.includes('Two factor authentication') || // yarn v1
-  text.includes('One-time password:'); // yarn berry
+function needOtp(text: string) {
+  return text.includes('code EOTP') // npm/pnpm
+    || text.includes('--otp=<code>') // npm/pnpm
+    || text.includes('Two factor authentication') // yarn v1
+    || text.includes('One-time password:');
+} // yarn berry
 
 function runNpmPublish(file: string, args: string[], pkg: PackageInfo) {
   const cp = execa(file, args, { cwd: pkg.dir, env: getNpmEnv() });
 
-  cp.stdout!.on('data', chunk => {
+  cp.stdout!.on('data', (chunk) => {
     logger.debug(chunk.toString('utf8'));
     // https://github.com/yarnpkg/berry/blob/a3e5695186f2aec3a68810acafc6c9b1e45191da/packages/plugin-npm/sources/npmHttpUtils.ts#L541
     if (chunk.toString('utf8').includes('One-time password:')) {

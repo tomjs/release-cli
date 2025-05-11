@@ -1,60 +1,61 @@
+import type { PackageManager } from '@tomjs/pkg';
+import type { NpmInfo, PackageInfo, ReleaseOptions } from './types';
 import fs from 'node:fs';
 import path from 'node:path';
-import type { PackageManager } from '@tomjs/pkg';
 import inquirer from 'inquirer';
-import { NPM_REGISTRY, NPM_YARN_REGISTRY } from './constants.js';
-import { logger } from './logger.js';
-import type { NpmInfo, PackageInfo, ReleaseOptions } from './types.js';
-import { getScope, removeTrailingSlashes, run } from './utils.js';
+import { NPM_REGISTRY, NPM_YARN_REGISTRY } from './constants';
+import { logger } from './logger';
+import { getScope, removeTrailingSlashes, run } from './utils';
 
-export type TwoFactorState = {
+export interface TwoFactorState {
   token: string | null;
   isRequired: Promise<boolean>;
   tryAgain?: boolean;
-};
+}
 
-export const getNpmEnv = (pkg?: PackageInfo) => {
+export function getNpmEnv(pkg?: PackageInfo) {
   return Object.assign({}, process.env, {
     npm_config_registry: pkg?.registry || NPM_REGISTRY,
   });
-};
+}
 
-export const getNpmInfo = async (pkg: PackageInfo) => {
+export async function getNpmInfo(pkg: PackageInfo) {
   const cmd = `npm info ${pkg.name} --json --registry=${pkg.registry}`;
   let json: NpmInfo | undefined;
   try {
     const result = await run(cmd);
     json = JSON.parse(result);
-  } catch {}
+  }
+  catch {}
 
   return Object.assign(
     {
-      versions: [],
+      'versions': [],
       'dist-tags': {},
     },
     json,
   ) as NpmInfo;
-};
+}
 
-const getNpmRegistryCmd = (pm: PackageManager, pkgName?: string) => {
+function getNpmRegistryCmd(pm: PackageManager, pkgName?: string) {
   const cmd = `${pm.cli} config get registry`;
   if (!pkgName) {
     return cmd;
   }
   const scope = getScope(pkgName);
   return scope ? `${pm.cli} config get ${scope}:registry` : cmd;
-};
+}
 
-const getBerryRegistryCmd = (pkgName?: string) => {
+function getBerryRegistryCmd(pkgName?: string) {
   const cmd = 'yarn config get npmRegistryServer';
   if (!pkgName) {
     return cmd;
   }
   const scope = getScope(pkgName);
   return scope ? `yarn config get npmScopes["${scope}"]:npmRegistryServer` : cmd;
-};
+}
 
-const _getNpmRegistry = async (pm: PackageManager, pkg?: PackageInfo) => {
+async function _getNpmRegistry(pm: PackageManager, pkg?: PackageInfo) {
   try {
     const pkgName = pkg?.name;
     let registry = pkg?.packageJson.publishConfig?.registry;
@@ -72,10 +73,11 @@ const _getNpmRegistry = async (pm: PackageManager, pkg?: PackageInfo) => {
     registry = registry === 'undefined' ? '' : registry;
 
     return removeTrailingSlashes(registry) || NPM_REGISTRY;
-  } catch {}
+  }
+  catch {}
 
   return NPM_REGISTRY;
-};
+}
 
 export async function getNpmRegistry(pm: PackageManager, pkg: PackageInfo) {
   let registry = '';
@@ -84,7 +86,8 @@ export async function getNpmRegistry(pm: PackageManager, pkg: PackageInfo) {
     if (!registry) {
       registry = await _getNpmRegistry(pm);
     }
-  } else {
+  }
+  else {
     registry = await _getNpmRegistry(pm);
   }
 
@@ -100,7 +103,7 @@ export function updatePackageVersion(pkg: PackageInfo) {
   const jsonPath = path.join(pkg.dir, 'package.json');
   const json = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
   json.version = pkg.newVersion;
-  fs.writeFileSync(jsonPath, JSON.stringify(json, null, 2) + '\n');
+  fs.writeFileSync(jsonPath, `${JSON.stringify(json, null, 2)}\n`);
 }
 
 async function getTokenIsRequired() {
@@ -114,13 +117,14 @@ async function getTokenIsRequired() {
       return false;
     }
     return json.tfa.mode === 'auth-and-writes';
-  } catch (e: any) {
+  }
+  catch (e: any) {
     logger.error('Error while checking if token is required', e.message);
     return false;
   }
 }
 
-export const getTwoFactorState = (opts: ReleaseOptions): TwoFactorState => {
+export function getTwoFactorState(opts: ReleaseOptions): TwoFactorState {
   const { otp, pkgs } = opts;
   if (otp) {
     return {
@@ -140,11 +144,12 @@ export const getTwoFactorState = (opts: ReleaseOptions): TwoFactorState => {
     token: null,
     isRequired: getTokenIsRequired(),
   };
-};
+}
 
 // const otpAskLimit = pLimit(1);
-const askForOtpCode = async (twoFactorState: TwoFactorState) => {
-  if (twoFactorState.token !== null) return twoFactorState.token;
+async function askForOtpCode(twoFactorState: TwoFactorState) {
+  if (twoFactorState.token !== null)
+    return twoFactorState.token;
   logger.info('This operation requires a one-time password from your authenticator.');
 
   const { otp } = await inquirer.prompt([
@@ -157,11 +162,11 @@ const askForOtpCode = async (twoFactorState: TwoFactorState) => {
   ]);
   twoFactorState.token = otp;
   return otp;
-};
+}
 
-export const getOtpCode = async (twoFactorState: TwoFactorState) => {
+export async function getOtpCode(twoFactorState: TwoFactorState) {
   if (twoFactorState.token) {
     return twoFactorState.token;
   }
   return askForOtpCode(twoFactorState);
-};
+}

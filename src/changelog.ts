@@ -1,3 +1,4 @@
+import type { GitCommit, GitTagInfo, PackageInfo, ReleaseOptions } from './types';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getPackages } from '@manypkg/get-packages';
@@ -10,11 +11,10 @@ import {
   getGitTagVersionRelease,
   releaseCompareUrl,
   releaseNotes,
-} from './git.js';
-import { logger } from './logger.js';
-import { getNpmInfo, getNpmRegistry, updatePackageVersion } from './npm.js';
-import type { GitCommit, GitTagInfo, PackageInfo, ReleaseOptions } from './types.js';
-import { askYesOrNo, cancelAndExit, run } from './utils.js';
+} from './git';
+import { logger } from './logger';
+import { getNpmInfo, getNpmRegistry, updatePackageVersion } from './npm';
+import { askYesOrNo, cancelAndExit, run } from './utils';
 
 export async function runGenerateChangelog(opts: ReleaseOptions) {
   if (!opts.log) {
@@ -77,7 +77,7 @@ export async function runGenerateChangelog(opts: ReleaseOptions) {
       );
 
       pkg.changelogs.push({
-        tags: tagNames.map(name => {
+        tags: tagNames.map((name) => {
           const item = tags.find(s => s.name === name)!;
           if (item && item.name === 'HEAD') {
             item.name = getGitTagVersion(pkg.name, item.version, opts);
@@ -124,7 +124,7 @@ function parseCommitLog(log: string) {
     .split('\n')
     .map(s => s.trim())
     .filter(s => s)
-    .forEach(s => {
+    .forEach((s) => {
       const [sha, ...rest] = s.split(' ');
       let msg = rest.join(' ');
       // ignore merge and release commit
@@ -137,7 +137,8 @@ function parseCommitLog(log: string) {
       const log = commits.find(s => s.msg === msg);
       if (log) {
         log.ids.push(sha);
-      } else {
+      }
+      else {
         commits.push({ msg, ids: [sha] });
       }
     });
@@ -154,7 +155,8 @@ async function createChangelog(opts: ReleaseOptions) {
     let content = '';
     if (opts.logFull) {
       content = '';
-    } else if (fs.existsSync(logPath)) {
+    }
+    else if (fs.existsSync(logPath)) {
       content = fs.readFileSync(logPath, 'utf8');
     }
 
@@ -179,14 +181,15 @@ async function createChangelog(opts: ReleaseOptions) {
         title += ` (${tag.time})`;
       }
 
-      content = `## ${title}\n\n${msg || `- No Change`}\n\n` + content;
+      content = `## ${title}\n\n${msg || `- No Change`}\n\n${content}`;
     }
 
     pkg.changelogs?.reverse();
 
     if (dryRun) {
       console.log(content);
-    } else {
+    }
+    else {
       fs.writeFileSync(logPath, content, 'utf8');
     }
 
@@ -218,7 +221,7 @@ async function getDependencyVersions(opts: ReleaseOptions) {
   const allVersions: Record<string, string> = {};
   const allPackages = packages
     .filter(s => !s.packageJson.private)
-    .map(s => {
+    .map((s) => {
       return {
         ...s,
         name: s.packageJson.name,
@@ -254,7 +257,7 @@ async function getDependencyVersions(opts: ReleaseOptions) {
     }
     const remote = npmInfo?.version;
     let version = pkg.version;
-    if (remote && remote === remote) {
+    if (remote) {
       version = '';
     }
 

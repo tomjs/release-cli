@@ -1,20 +1,19 @@
+import type { Changelog, GitTagInfo, ReleaseOptions } from './types';
 import path from 'node:path';
 import chalk from 'chalk';
 import dayjs from 'dayjs';
-import GitHost from 'hosted-git-info';
 import isSubdir from 'is-subdir';
 import semver from 'semver';
-import { ReleaseError } from './error.js';
-import { logger } from './logger.js';
-import type { Changelog, GitTagInfo, ReleaseOptions } from './types.js';
-import { run } from './utils.js';
+import { ReleaseError } from './error';
+import { logger } from './logger';
+import { run } from './utils';
 
 /**
  * Check if the current directory is a git repository.
  */
 export async function checkGitRepo() {
   await run(`git rev-parse --is-inside-work-tree`)
-    .then(res => {
+    .then((res) => {
       if (res !== 'true') {
         throw new Error('Not a git repository.');
       }
@@ -53,7 +52,6 @@ async function getRepoRoot() {
  * Get git changed files since the given ref.
  * @param ref
  * @param fullPath whether to return full path, default is false
- * @returns
  */
 export async function getChangedFilesSince(ref: string, fullPath = false): Promise<Array<string>> {
   try {
@@ -65,11 +63,13 @@ export async function getChangedFilesSince(ref: string, fullPath = false): Promi
     const res = await run(['git', 'diff', '--name-only', divergedAt]);
 
     const files = res.split('\n').filter(a => a);
-    if (!fullPath) return files;
+    if (!fullPath)
+      return files;
 
     const repoRoot = await getRepoRoot();
     return files.map(file => path.resolve(repoRoot, file));
-  } catch (e: any) {
+  }
+  catch (e: any) {
     logger.error(e.message);
   }
   return [];
@@ -78,24 +78,25 @@ export async function getChangedFilesSince(ref: string, fullPath = false): Promi
 /**
  * Get the commit SHA that diverged from the given ref.
  * @param ref The ref to check against.
- * @returns The commit SHA that diverged from the given ref.
+  The commit SHA that diverged from the given ref.
  */
 export async function getDivergedCommit(ref: string) {
   try {
     return await run(['git', 'merge-base', ref, 'HEAD']);
-  } catch {}
+  }
+  catch {}
 }
 
 /**
  * Get the package names that have changed since the given ref.
- * @returns The list of package names that have changed.
+  The list of package names that have changed.
  */
 export async function getChangedPackageNames(opts: ReleaseOptions) {
   const { pkgs, branch } = opts;
   const changedFiles = await getChangedFilesSince(branch!, true);
   return pkgs
     .map(s => ({ name: s.name, dir: s.dir }))
-    .filter(pkg => {
+    .filter((pkg) => {
       const changedPackageFiles: string[] = [];
 
       for (let i = changedFiles.length - 1; i >= 0; i--) {
@@ -116,10 +117,18 @@ export async function getChangedPackageNames(opts: ReleaseOptions) {
 /**
  * Clear git tag name and return version only
  * @param tag
- * @returns
  */
 export function clearTagVersion(tag: string) {
-  return tag.replace(/(.+(_|-|@))/, '').replace('v', '');
+  const matchArr = tag.match(/(?:@|v)([^@v]+)$/);
+  if (!matchArr || matchArr.length === 0) {
+    return tag;
+  }
+
+  if (matchArr.length === 1) {
+    return matchArr[0];
+  }
+
+  return matchArr[1];
 }
 
 export interface GitTagVersionOptions {
@@ -157,8 +166,6 @@ export function getGitTagVersion(name: string, version: string, opts: GitTagVers
 
 /**
  * Get the latest tag of the packages.
- * @param pkgNames only include package names
- * @returns
  */
 export async function getGitTags(opts: ReleaseOptions) {
   const { isMonorepo, pkgs } = opts;
@@ -167,13 +174,14 @@ export async function getGitTags(opts: ReleaseOptions) {
   // compatible with old version
   const prefixMap: Record<string, string> = {};
   if (isMonorepo) {
-    pkgNames.forEach(name => {
+    pkgNames.forEach((name) => {
       prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: true, lineTag: false })] = name;
       prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: false, lineTag: false })] = name;
       prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: true, lineTag: true })] = name;
       prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: false, lineTag: true })] = name;
     });
   }
+
   const prefixKeys = Object.keys(prefixMap);
 
   const records = await run(
@@ -189,7 +197,8 @@ export async function getGitTags(opts: ReleaseOptions) {
     // single package
     if (tag === `v${version}` || tag === version) {
       pkgName = '_';
-    } else {
+    }
+    else {
       const prefix = prefixKeys.find(pre => tag === `${pre}${version}`);
       if (prefix) {
         pkgName = prefixMap[prefix];
@@ -208,14 +217,14 @@ export async function getGitTags(opts: ReleaseOptions) {
     ]);
   };
 
-  records.split(/\n/).forEach(record => {
+  records.split(/\n/).forEach((record) => {
     if (!record) {
       return;
     }
     add(record);
   });
 
-  Object.keys(map).forEach(name => {
+  Object.keys(map).forEach((name) => {
     if (Array.isArray(pkgNames) && pkgNames.length && !pkgNames.includes(name)) {
       delete map[name];
       return;
@@ -232,7 +241,6 @@ export async function getGitTags(opts: ReleaseOptions) {
  * Get git tag commits
  * @param tags
  * @param dir
- * @returns
  */
 
 export async function getCommitsByTags(tags: string[], dir: string) {
@@ -245,12 +253,12 @@ export async function getCurrentGitSHA() {
   try {
     const sha = await run(`git rev-parse HEAD`, { trim: true });
     return sha ? sha.substring(0, 7) : sha;
-  } catch {}
+  }
+  catch {}
 }
 
 /**
  * Get git repository hosted url
- * @returns
  */
 export async function getRepositoryUrl() {
   try {
@@ -266,20 +274,16 @@ export async function getRepositoryUrl() {
       url = url.split(' ')[0];
     }
     return url;
-  } catch {}
-}
-
-export function parseGitUrl(gitUrl: string): URL {
-  // @ts-ignore
-  return GitHost.parseUrl(gitUrl);
+  }
+  catch {}
 }
 
 export function releaseNotes(changelog: Changelog, opts: ReleaseOptions) {
   return changelog.commits
-    .map(c => {
+    .map((c) => {
       let txt = `- ${c.msg}`;
       if (opts.logCommit && opts.gitCommitUrl) {
-        txt += c.ids.map(id => `  [${id}](${opts.gitCommitUrl?.replace(/{sha}/g, id)})`).join('  ');
+        txt += c.ids.map(id => `  [${id}](${opts.gitCommitUrl?.replace(/\{sha\}/g, id)})`).join('  ');
       }
 
       return txt;
@@ -290,7 +294,7 @@ export function releaseNotes(changelog: Changelog, opts: ReleaseOptions) {
 export function releaseCompareUrl(changelog: Changelog, opts: ReleaseOptions) {
   const tags = changelog.tags.filter(s => s);
   if (opts.logCompare && opts.gitCompareUrl && tags.length > 1) {
-    return `${opts.gitCompareUrl.replace(/{diff}/g, tags.map(s => encodeURIComponent(s.name)).join('...'))}`;
+    return `${opts.gitCompareUrl.replace(/\{diff\}/g, tags.map(s => encodeURIComponent(s.name)).join('...'))}`;
   }
 }
 
