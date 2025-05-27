@@ -80,7 +80,7 @@ export async function runGenerateChangelog(opts: ReleaseOptions) {
         tags: tagNames.map((name) => {
           const item = tags.find(s => s.name === name)!;
           if (item && item.name === 'HEAD') {
-            item.name = getGitTagVersion(pkg.name, item.version, opts);
+            item.name = getGitTagVersion(pkg.tagName, item.version, opts);
           }
 
           return item;
@@ -205,7 +205,7 @@ async function bumpVersionAndTag(pkg: PackageInfo, opts: ReleaseOptions) {
   !dryRun && updatePackageVersion(pkg);
 
   await run('git add .', { cwd: pkg.dir, dryRun });
-  const tag = getGitTagVersionRelease(pkg.name, pkg.newVersion, isMonorepo);
+  const tag = getGitTagVersionRelease(pkg.tagName, pkg.newVersion, isMonorepo);
   await run(`git commit -m "chore: release ${tag}"`, {
     cwd: pkg.dir,
     dryRun,

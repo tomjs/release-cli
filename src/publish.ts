@@ -38,12 +38,12 @@ async function bumpVersionAndTag(opts: ReleaseOptions) {
   await run('git add -A', { dryRun });
 
   // git commit message
-  const msgTags = pkgs.map(s => getGitTagVersionRelease(s.name, s.newVersion, opts.isMonorepo));
+  const msgTags = pkgs.map(s => getGitTagVersionRelease(s.tagName, s.newVersion, opts.isMonorepo));
   await run(`git commit -m "chore: release ${msgTags.join(', ')}"`, {
     dryRun,
   });
 
-  const tags = pkgs.map(s => getGitTagVersion(s.name, s.newVersion, opts));
+  const tags = pkgs.map(s => getGitTagVersion(s.tagName, s.newVersion, opts));
   for (const tag of tags) {
     await run(`git tag ${tag}`, { dryRun });
   }
@@ -174,7 +174,7 @@ async function runGithubRelease(opts: ReleaseOptions) {
     repoUrl.pathname += '/releases/new';
 
     const { newVersion: version, changelogs } = pkg;
-    const tag = getGitTagVersion(pkg.name, version, opts);
+    const tag = getGitTagVersion(pkg.tagName, version, opts);
     repoUrl.searchParams.set('tag', tag);
     repoUrl.searchParams.set('title', tag);
     const pre = semver.parse(version)?.prerelease;

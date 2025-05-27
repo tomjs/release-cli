@@ -174,11 +174,17 @@ export async function getGitTags(opts: ReleaseOptions) {
   // compatible with old version
   const prefixMap: Record<string, string> = {};
   if (isMonorepo) {
-    pkgNames.forEach((name) => {
+    pkgs.forEach((pkg) => {
+      const { name, tagName } = pkg;
       prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: true, lineTag: false })] = name;
       prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: false, lineTag: false })] = name;
       prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: true, lineTag: true })] = name;
       prefixMap[getGitTagPrefix(name, { isMonorepo, scopedTag: false, lineTag: true })] = name;
+
+      prefixMap[getGitTagPrefix(tagName, { isMonorepo, scopedTag: true, lineTag: false })] = name;
+      prefixMap[getGitTagPrefix(tagName, { isMonorepo, scopedTag: false, lineTag: false })] = name;
+      prefixMap[getGitTagPrefix(tagName, { isMonorepo, scopedTag: true, lineTag: true })] = name;
+      prefixMap[getGitTagPrefix(tagName, { isMonorepo, scopedTag: false, lineTag: true })] = name;
     });
   }
 
@@ -306,7 +312,7 @@ export async function resetGitSubmit(opts: ReleaseOptions) {
 
   // remote git tag
   for (const pkg of pkgs) {
-    const tag = getGitTagVersion(pkg.name, pkg.version, opts);
+    const tag = getGitTagVersion(pkg.tagName, pkg.version, opts);
     const res = await run(`git tag -l ${tag}`);
     if (res) {
       await run(`git tag -d ${tag}`);

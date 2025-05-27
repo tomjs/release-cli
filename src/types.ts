@@ -26,8 +26,13 @@ export interface NpmInfo {
 }
 
 export interface PackageInfo {
+  /** npm package name */
   name: string;
+  /** git tag name */
+  tagName: string;
+  /** npm package version */
   version: string;
+  /** npm package new version */
   newVersion: string;
   /** npm publish tag */
   tag: string;

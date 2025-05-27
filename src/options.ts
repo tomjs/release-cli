@@ -1,7 +1,6 @@
 import type { ReleaseType } from 'semver';
 import type { PackageInfo, ReleaseCLIOptions, ReleaseOptions } from './types';
 import fs from 'node:fs';
-import path from 'node:path';
 import { getPackages } from '@manypkg/get-packages';
 import chalk from 'chalk';
 import GitHost from 'hosted-git-info';
@@ -106,15 +105,9 @@ async function findPackages(opts: ReleaseOptions) {
   if (!rootPackage || !_packages || _packages.length === 0) {
     throw new Error('No root package found.');
   }
-  // ignore private
 
-  const packages = _packages.filter((s) => {
-    if (s.packageJson.private) {
-      return false;
-    }
-    const dirname = path.dirname(s.relativeDir);
-    return !['example', 'examples'].includes(dirname);
-  });
+  // ignore private
+  const packages = _packages.filter(s => !s.packageJson.private);
 
   let isMonorepo = false;
   if (packages.length === 0) {
@@ -139,13 +132,28 @@ async function findPackages(opts: ReleaseOptions) {
   const pkgs = packages
     .filter(s => !s.packageJson.private)
     .map((s) => {
+      const scoped = isScopedPackage(s.packageJson.name);
+      const name = s.packageJson.name;
+      let tagName = name;
+      if (isMonorepo) {
+        if (s.relativeDir.startsWith('packages/')) {
+          tagName = s.relativeDir.split('/')[1];
+        }
+        else if (scoped) {
+          const names = name.split('/');
+          tagName = names.pop() || name;
+        }
+      }
+
       return {
         ...s,
-        name: s.packageJson.name,
+        name,
+        // use package folder name as tag name
+        tagName,
         version: s.packageJson.version,
         newVersion: '',
         tag: '',
-        scoped: isScopedPackage(s.packageJson.name),
+        scoped,
       } as PackageInfo;
     });
   opts.pkgs = pkgs;
