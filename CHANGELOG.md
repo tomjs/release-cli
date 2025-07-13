@@ -1,3 +1,8 @@
+## [4.8.0](https://github.com/tomjs/release-cli/compare/v4.7.0...v4.8.0) (2025-07-13)
+
+- feat: 增加 --only-publish 参数用于仅发布当前版本  [e1935cb](https://github.com/tomjs/release-cli/commit/e1935cb)
+- fix: simple-git-hooks install error  [f0ff7aa](https://github.com/tomjs/release-cli/commit/f0ff7aa)
+
 ## [4.7.0](https://github.com/tomjs/release-cli/compare/v4.6.1...v4.7.0) (2025-05-28)
 
 - feat: use pkg folder name as tag name  [e9e70a4](https://github.com/tomjs/release-cli/commit/e9e70a4)
