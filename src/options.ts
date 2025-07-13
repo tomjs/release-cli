@@ -64,6 +64,13 @@ export async function getReleaseOptions(options: ReleaseCLIOptions) {
   await selectTypeVersion(opts);
   await selectVersion(opts);
 
+  // new version
+  if (opts.onlyPublish) {
+    opts.pkgs.forEach((pkg) => {
+      pkg.newVersion = pkg.version;
+    });
+  }
+
   return opts;
 }
 

@@ -25,5 +25,6 @@ export interface ReleaseCLIOptions {
   releaseDraft?: boolean;
   dryRun?: boolean;
   strict?: boolean;
+  onlyPublish?: boolean;
   verbose?: boolean;
 }

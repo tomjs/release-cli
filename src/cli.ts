@@ -48,6 +48,7 @@ Options
   --otp                 This is a one-time password from a two-factor authenticator
   --no-release-draft    Skips opening a GitHub release draft
   --dry-run             Don't actually release, just simulate the process
+  --only-publish        Only publish the current package
   --verbose             Display verbose output
   -h, --help            Display this message
   -v, --version         Display version number
@@ -133,6 +134,9 @@ Options
       strict: {
         type: 'boolean',
       },
+      onlyPublish: {
+        type: 'boolean',
+      },
       verbose: {
         type: 'boolean',
         // default: isDev,
@@ -176,11 +180,18 @@ else {
       publish: true,
       build: false,
       tagMerge: true,
+      onlyPublish: false,
       verbose: isDev,
     } as ReleaseCLIOptions,
     config,
     cliOpts,
   ) as ReleaseCLIOptions;
+
+  if (releaseOpts.onlyPublish) {
+    releaseOpts.strict ??= false;
+    releaseOpts.anyBranch ??= true;
+  }
+
   logger.enableDebug(!!releaseOpts.verbose);
   logger.debug('merged options:', releaseOpts);
 
@@ -189,8 +200,12 @@ else {
   try {
     const opts = await getReleaseOptions(releaseOpts);
     logger.debug(opts);
-    await runGenerateChangelog(opts);
-    logger.debug(opts);
+
+    if (!opts?.onlyPublish) {
+      await runGenerateChangelog(opts);
+      logger.debug(opts);
+    }
+
     await runPublish(opts);
   }
   catch (e: any) {

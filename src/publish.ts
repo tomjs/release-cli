@@ -16,6 +16,11 @@ import { getNpmEnv, getOtpCode, getTwoFactorState, updatePackageVersion } from '
 import { run } from './utils';
 
 export async function runPublish(opts: ReleaseOptions) {
+  if (opts.onlyPublish) {
+    await runPublishPackages(opts);
+    return;
+  }
+
   await bumpVersionAndTag(opts);
   await runPublishPackages(opts);
   await runGithubRelease(opts);
@@ -62,6 +67,10 @@ async function runPublishPackages(opts: ReleaseOptions) {
       const tag = `${pkg.name}@${pkg.newVersion}`;
       logger.success(`Publish ${chalk.green(tag)} successfully 🎉`);
     }
+  }
+
+  if (opts.onlyPublish) {
+    return;
   }
 
   const gitUrl = await getRepositoryUrl();
