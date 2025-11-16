@@ -45,7 +45,7 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "@manypkg/get-packages": "^2.2.2",
+    "@manypkg/get-packages": "2.2.1",
     "@tomjs/logger": "^1.4.0",
     "@tomjs/pkg": "^1.0.4",
     "chalk": "^5.6.2",

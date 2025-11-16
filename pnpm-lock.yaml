@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@manypkg/get-packages':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: 2.2.1
+        version: 2.2.1
       '@tomjs/logger':
         specifier: ^1.4.0
         version: 1.4.0
@@ -208,19 +208,10 @@ packages:
     resolution: {integrity: sha512-8lLmua6AVh/8SLJRRVD6V8p73Hir9w5mJrhE+IPpILG31KKlI9iz5zmBYKcWPS59qSfgP9RaSBQSHHE81WKuEw==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/parser@7.27.2':
-    resolution: {integrity: sha512-QYLs8299NA7WM/bZAdp+CviYYkVoYXlDW2rzliy3chxd1PQjej7JORuMJDJXJUb9g0TT+B99EwaVLKmX+sPXWw==}
-    engines: {node: '>=6.0.0'}
-    hasBin: true
-
   '@babel/parser@7.28.5':
     resolution: {integrity: sha512-KKBU1VGYR7ORr3At5HAtUQ+TV3SzRCXmA/8OdDZiLDBIZxVyzXuztPjfLd3BV1PRAQGCMWWSHYhL0F8d5uHBDQ==}
     engines: {node: '>=6.0.0'}
     hasBin: true
-
-  '@babel/types@7.27.1':
-    resolution: {integrity: sha512-+EzkxvLNfiUeKMgy/3luqfsCWFRXLb7U6wNQTk60tovuckwB15B191tJWvpp4HjiQWdJkCxO3Wbvc6jlk3Xb2Q==}
-    engines: {node: '>=6.9.0'}
 
   '@babel/types@7.28.5':
     resolution: {integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==}
@@ -583,8 +574,8 @@ packages:
     resolution: {integrity: sha512-jtEZKczWTueJYHjGpxU3KJQ08Gsrf4r6Q2GjmPp/RGk5leeYAA1eyDADSAF+KVCsQ6EwZd/FMcOFCoMhtqdCtQ==}
     engines: {node: '>=14.18.0'}
 
-  '@manypkg/get-packages@2.2.2':
-    resolution: {integrity: sha512-3+Zd8kLZmsyJFmWTBtY0MAuCErI7yKB2cjMBlujvSVKZ2R/BMXi0kjCXu2dtRlSq/ML86t1FkumT0yreQ3n8OQ==}
+  '@manypkg/get-packages@2.2.1':
+    resolution: {integrity: sha512-TrJd86paBkKEx6InhObcUhuoJNcATlbO6+s1dQdLd4+Y1SLDKJUAMhU46kTZ1SOFbegTuhDbIF3j+Jy564BERA==}
     engines: {node: '>=14.18.0'}
 
   '@manypkg/tools@1.1.2':
@@ -3532,18 +3523,9 @@ snapshots:
       js-tokens: 4.0.0
       picocolors: 1.0.0
 
-  '@babel/parser@7.27.2':
-    dependencies:
-      '@babel/types': 7.27.1
-
   '@babel/parser@7.28.5':
     dependencies:
       '@babel/types': 7.28.5
-
-  '@babel/types@7.27.1':
-    dependencies:
-      '@babel/helper-string-parser': 7.27.1
-      '@babel/helper-validator-identifier': 7.28.5
 
   '@babel/types@7.28.5':
     dependencies:
@@ -3900,7 +3882,7 @@ snapshots:
     dependencies:
       '@manypkg/tools': 1.1.2
 
-  '@manypkg/get-packages@2.2.2':
+  '@manypkg/get-packages@2.2.1':
     dependencies:
       '@manypkg/find-root': 2.2.3
       '@manypkg/tools': 1.1.2
@@ -4302,7 +4284,7 @@ snapshots:
 
   '@vue/compiler-core@3.5.13':
     dependencies:
-      '@babel/parser': 7.27.2
+      '@babel/parser': 7.28.5
       '@vue/shared': 3.5.13
       entities: 4.5.0
       estree-walker: 2.0.2
@@ -4315,7 +4297,7 @@ snapshots:
 
   '@vue/compiler-sfc@3.5.13':
     dependencies:
-      '@babel/parser': 7.27.2
+      '@babel/parser': 7.28.5
       '@vue/compiler-core': 3.5.13
       '@vue/compiler-dom': 3.5.13
       '@vue/compiler-ssr': 3.5.13
