@@ -1,3 +1,7 @@
+## [4.9.1](https://github.com/tomjs/release-cli/compare/v4.9.0...v4.9.1) (2025-11-16)
+
+- chore: lock @manypkg/get-packages  [2bd7523](https://github.com/tomjs/release-cli/commit/2bd7523)
+
 ## [4.9.0](https://github.com/tomjs/release-cli/compare/v4.8.0...v4.9.0) (2025-11-16)
 
 - fix: tsdown output file name  [2f27d0b](https://github.com/tomjs/release-cli/commit/2f27d0b)
