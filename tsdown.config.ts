@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 
 export default defineConfig((options) => {
   const isDev = !!options.watch;
@@ -10,7 +10,6 @@ export default defineConfig((options) => {
     shims: false,
     clean: true,
     sourcemap: isDev,
-    splitting: false,
     env: {
       NODE_ENV: isDev ? 'development' : 'production',
     },
