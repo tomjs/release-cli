@@ -1,3 +1,8 @@
+## [4.9.0](https://github.com/tomjs/release-cli/compare/v4.8.0...v4.9.0) (2025-11-16)
+
+- fix: tsdown output file name  [2f27d0b](https://github.com/tomjs/release-cli/commit/2f27d0b)
+- chore: use tsdown replace tsup  [8e1835e](https://github.com/tomjs/release-cli/commit/8e1835e)
+
 ## [4.8.0](https://github.com/tomjs/release-cli/compare/v4.7.0...v4.8.0) (2025-07-13)
 
 - feat: 增加 --only-publish 参数用于仅发布当前版本  [e1935cb](https://github.com/tomjs/release-cli/commit/e1935cb)
