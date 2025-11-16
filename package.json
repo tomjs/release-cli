@@ -22,8 +22,8 @@
   ],
   "types": "./index.d.ts",
   "bin": {
-    "rc": "./dist/index.js",
-    "release-cli": "./dist/index.js"
+    "rc": "./dist/index.mjs",
+    "release-cli": "./dist/index.mjs"
   },
   "files": [
     "dist",
