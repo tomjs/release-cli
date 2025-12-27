@@ -1,5 +1,5 @@
 import type { PackageManager } from '@tomjs/pkg';
-import type { NpmInfo, PackageInfo, ReleaseOptions } from './types';
+import type { NpmInfo, PackageInfo } from './types';
 import fs from 'node:fs';
 import path from 'node:path';
 import inquirer from 'inquirer';
@@ -104,46 +104,6 @@ export function updatePackageVersion(pkg: PackageInfo) {
   const json = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
   json.version = pkg.newVersion;
   fs.writeFileSync(jsonPath, `${JSON.stringify(json, null, 2)}\n`);
-}
-
-async function getTokenIsRequired() {
-  try {
-    const result = await run('npm profile get --json', {
-      env: getNpmEnv(),
-    });
-
-    const json = JSON.parse(result);
-    if (json.error || !json.tfa || !json.tfa.mode) {
-      return false;
-    }
-    return json.tfa.mode === 'auth-and-writes';
-  }
-  catch (e: any) {
-    logger.error('Error while checking if token is required', e.message);
-    return false;
-  }
-}
-
-export function getTwoFactorState(opts: ReleaseOptions): TwoFactorState {
-  const { otp, pkgs } = opts;
-  if (otp) {
-    return {
-      token: otp,
-      isRequired: Promise.resolve(true),
-    };
-  }
-
-  if (pkgs.some(pkg => pkg.registry !== NPM_REGISTRY)) {
-    return {
-      token: null,
-      isRequired: Promise.resolve(false),
-    };
-  }
-
-  return {
-    token: null,
-    isRequired: getTokenIsRequired(),
-  };
 }
 
 // const otpAskLimit = pLimit(1);

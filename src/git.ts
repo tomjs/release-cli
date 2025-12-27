@@ -312,24 +312,12 @@ export async function resetGitSubmit(opts: ReleaseOptions) {
 
   // remote git tag
   for (const pkg of pkgs) {
-    const tag = getGitTagVersion(pkg.tagName, pkg.version, opts);
+    const tag = getGitTagVersion(pkg.tagName, pkg.newVersion, opts);
     const res = await run(`git tag -l ${tag}`);
     if (res) {
       await run(`git tag -d ${tag}`);
     }
   }
 
-  // reset git commit
-  const res = await run(`git --no-pager log -n ${pkgs.length}  --pretty="format:%h"`);
-  const shaList = res
-    .split('\n')
-    .map(s => s.trim())
-    .filter(s => s);
-
-  for (const sha of shaList) {
-    if (sha === gitSHA) {
-      return;
-    }
-    await run(`git reset --hard ${sha}`);
-  }
+  await run(`git reset --hard HEAD~1`);
 }

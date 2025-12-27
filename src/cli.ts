@@ -45,7 +45,6 @@ Options
   --no-publish          Skips publishing
   --build               Run build script before publishing (You can also use "prepublishOnly")
   --no-tag-merge        When publishing multiple packages, each package has its own independent tag and commit
-  --otp                 This is a one-time password from a two-factor authenticator
   --no-release-draft    Skips opening a GitHub release draft
   --dry-run             Don't actually release, just simulate the process
   --only-publish        Only publish the current package
@@ -124,9 +123,6 @@ Options
       },
       releaseDraft: {
         type: 'boolean',
-      },
-      otp: {
-        type: 'string',
       },
       dryRun: {
         type: 'boolean',
@@ -214,12 +210,14 @@ else {
       if (e.code === ReleaseErrorCode.WARNING || e.code === ReleaseErrorCode.EXIT) {
         logger.warning(msg);
       }
+      else if (e.code === ReleaseErrorCode.ROLLBACK) {
+        logger.error(msg);
+        await resetGitSubmit(getOptions() as any);
+      }
       else {
         logger.error(msg);
       }
     }
-
-    await resetGitSubmit(getOptions() as any);
 
     if (cliOpts.verbose) {
       console.log();

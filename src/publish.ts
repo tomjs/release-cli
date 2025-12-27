@@ -1,9 +1,9 @@
-import type { TwoFactorState } from './npm';
 import type { PackageInfo, ReleaseOptions } from './types';
 import chalk from 'chalk';
 import { execa } from 'execa';
 import open from 'open';
 import semver from 'semver';
+import { ReleaseError } from './error';
 import {
   getGitTagVersion,
   getGitTagVersionRelease,
@@ -12,7 +12,7 @@ import {
   releaseNotes,
 } from './git';
 import { logger } from './logger';
-import { getNpmEnv, getOtpCode, getTwoFactorState, updatePackageVersion } from './npm';
+import { getNpmEnv, updatePackageVersion } from './npm';
 import { run } from './utils';
 
 export async function runPublish(opts: ReleaseOptions) {
@@ -56,14 +56,13 @@ async function bumpVersionAndTag(opts: ReleaseOptions) {
 
 async function runPublishPackages(opts: ReleaseOptions) {
   const { pkgs, dryRun, packageManager: pm } = opts;
-  const twoFactorState = getTwoFactorState(opts);
 
   if (opts.publish) {
     for (const pkg of pkgs) {
       if (!dryRun && opts.build && pkg.packageJson?.scripts?.build) {
         await run(`${pm.cli} run build`, { cwd: pkg.dir });
       }
-      await publishOnePackage(pkg, opts, twoFactorState);
+      await publishOnePackage(pkg, opts);
       const tag = `${pkg.name}@${pkg.newVersion}`;
       logger.success(`Publish ${chalk.green(tag)} successfully 🎉`);
     }
@@ -85,7 +84,6 @@ async function runPublishPackages(opts: ReleaseOptions) {
 async function publishOnePackage(
   pkg: PackageInfo,
   opts: ReleaseOptions,
-  twoFactorState: TwoFactorState,
 ) {
   const { packageManager: pm, dryRun } = opts;
   const args: string[] = ['publish', '--access', pkg.access, '--tag', pkg.tag];
@@ -98,10 +96,6 @@ async function publishOnePackage(
     args.push(`---new-version`, pkg.newVersion);
   }
 
-  if (await twoFactorState.isRequired) {
-    await getOtpCode(twoFactorState);
-  }
-
   if (dryRun && pm.cli !== 'yarn') {
     args.push('--dry-run');
   }
@@ -111,15 +105,7 @@ async function publishOnePackage(
     cli = 'yarn npm';
   }
 
-  const getArgs = () => {
-    const otp = twoFactorState.token;
-    if (otp) {
-      return [...args, '--otp', otp];
-    }
-    return [...args];
-  };
-
-  const cmd = [cli].concat(getArgs()).join(' ');
+  const cmd = [cli].concat(args).join(' ');
   logger.debug(cmd);
 
   if (dryRun && pm.cli === 'yarn') {
@@ -128,21 +114,13 @@ async function publishOnePackage(
   }
 
   try {
-    await runNpmPublish(cli, getArgs(), pkg);
-    twoFactorState.tryAgain = false;
+    await runNpmPublish(cli, args, pkg);
   }
   catch (e: any) {
     if (e && needOtp(e.message)) {
-      if (twoFactorState.token !== null) {
-        // the current otp code must be invalid since it errored
-        twoFactorState.token = null;
-      }
-      twoFactorState.tryAgain = true;
-      await publishOnePackage(pkg, opts, twoFactorState);
+      logger.error(chalk.red('Please use "Access Tokens -> Security settings" to bypass 2FA"'));
     }
-    else {
-      throw e;
-    }
+    ReleaseError.rollback(e.message);
   }
 }
 
