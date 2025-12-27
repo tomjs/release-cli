@@ -1,3 +1,7 @@
+## [5.0.0](https://github.com/tomjs/release-cli/compare/v4.9.1...v5.0.0) (2025-12-27)
+
+- feat: remove opt  [7a78d1f](https://github.com/tomjs/release-cli/commit/7a78d1f)
+
 ## [4.9.1](https://github.com/tomjs/release-cli/compare/v4.9.0...v4.9.1) (2025-11-16)
 
 - chore: lock @manypkg/get-packages  [2bd7523](https://github.com/tomjs/release-cli/commit/2bd7523)
