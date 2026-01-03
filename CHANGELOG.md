@@ -1,3 +1,7 @@
+## [5.1.0](https://github.com/tomjs/release-cli/compare/v5.0.0...v5.1.0) (2026-01-03)
+
+- feat: add cnpm sync command  [f525bfd](https://github.com/tomjs/release-cli/commit/f525bfd)
+
 ## [5.0.0](https://github.com/tomjs/release-cli/compare/v4.9.1...v5.0.0) (2025-12-27)
 
 - feat: remove opt  [7a78d1f](https://github.com/tomjs/release-cli/commit/7a78d1f)
