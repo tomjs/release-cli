@@ -183,17 +183,25 @@ async function runGithubRelease(opts: ReleaseOptions) {
 
     logger.success(`${chalk.blue(pkg.name)} github release: ${chalk.green(repoUrl.toString())}`);
 
-    console.log();
-    logger.success(
-      `${chalk.blue(pkg.name)} npm sync: ${chalk.green(`https://npmmirror.com/sync/${pkg.name}`)}`,
-    );
-    console.log();
+    if (!opts.dryRun) {
+      await open(repoUrl.toString());
+    }
+
     logger.success(
       `${chalk.blue(pkg.name)} npm site: ${chalk.green(`https://www.npmjs.com/package/${pkg.name}`)}`,
     );
 
-    if (!opts.dryRun) {
-      await open(repoUrl.toString());
+    const author = pkg.packageJson.author;
+    if (author) {
+      if ((typeof author === 'string' && author.includes('tom@tomgao.cc'))
+        || (typeof author === 'object' && author.email && author.email.includes('tom@tomgao.cc'))) {
+        try {
+          await run(`cnpm sync ${pkg.name}`, { spinner: 'sync to npmmirror.com' });
+        }
+        catch (e) {
+          logger.error(e);
+        }
+      }
     }
   }
 }
