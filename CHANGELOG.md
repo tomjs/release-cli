@@ -1,3 +1,7 @@
+## [5.2.0](https://github.com/tomjs/release-cli/compare/v5.1.0...v5.2.0) (2026-03-16)
+
+- feat: add check npm whoami  [2dbe912](https://github.com/tomjs/release-cli/commit/2dbe912)
+
 ## [5.1.0](https://github.com/tomjs/release-cli/compare/v5.0.0...v5.1.0) (2026-01-03)
 
 - feat: add cnpm sync command  [f525bfd](https://github.com/tomjs/release-cli/commit/f525bfd)
