@@ -22,7 +22,7 @@ import {
 import { logger } from './logger';
 import { getPackageManagerConfig } from './manager';
 import { getNpmInfo, getNpmRegistry } from './npm';
-import { createSpin, isScopedPackage, joinArray, setOptions } from './utils';
+import { createSpin, isScopedPackage, joinArray, run, setOptions } from './utils';
 import {
   diffColor,
   getPreReleaseId,
@@ -56,6 +56,10 @@ export async function getReleaseOptions(options: ReleaseCLIOptions) {
     const spin = createSpin(`Get npm info from npm registry`);
     const list = await Promise.all(opts.pkgs.map(pkg => getNpmInfo(pkg)));
     spin.stop();
+
+    // check npm login
+    await run(`npm whoami --registry=${opts.pkgs[0].registry || NPM_REGISTRY}`);
+
     list.forEach((s, i) => {
       opts.pkgs[i].npmInfo = s;
     });
